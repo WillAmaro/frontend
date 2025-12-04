@@ -8,7 +8,7 @@ interface LogisticForm {
 }
 
 export default function Form({ name2 }: LogisticForm) {
-  const [name, setName] = useState<string>("Jose Cabro");
+  const [name, setName] = useState<string>("");
   const [listTable, setListTable] = useState<any[]>([
     {
       id: 1,
