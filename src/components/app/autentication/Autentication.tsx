@@ -40,12 +40,12 @@ export default function ModernAuthentication() {
         unmountOnExit
       >
         <Box >
-          <ModernLogin onSwitch={onSwitchRegister} />
+          <ModernLogin  />
         </Box>
       </Fade>
 
       {/* Register View */}
-      <Fade
+      {/* <Fade
         in={view === "register"}
         timeout={500}
         style={{
@@ -59,7 +59,7 @@ export default function ModernAuthentication() {
         <Box>
           <Register onSwitch={onSwitchLogin} />
         </Box>
-      </Fade>
+      </Fade> */}
     </Box>
   );
 }

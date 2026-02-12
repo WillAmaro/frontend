@@ -1,10 +1,7 @@
 // components/DrawerMenu.tsx
 "use client";
 
-import Link from "next/link";
 import { JSX, useState } from "react";
-import { ReactNode } from "react";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import { useTheme } from "@mui/material";
 import { usePathname } from "next/navigation";
@@ -229,61 +226,62 @@ function MenuItemComponent({
 
 export const DrawerMenu = React.memo(function DrawerMenu() {
   const drawer = useSelector((state: RootState) => state.drawer);
-  const routes = [
-    {
-      id: 1,
-      label: "Logistica",
-      path: "",
-      children: [
-        {
-          id: 1,
-          label: "Altas",
-          path: "",
-          children: [
-            {
-              id: 1,
-              label: "Kardex",
-              path: "/logistica/altas/kardex",
-            },
-            {
-              id: 2,
-              label: "Abastecimiento",
-              path: "/logistica/altas/solicitud-abastecimiento",
-            },
-            {
-              id: 3,
-              label: "Recepción Materiales",
-              path: "/logistica/altas/gestion-materiales",
-            },
-            {
-              id: 4,
-              label: "Despacho cuadrillas",
-              path: "/logistica/altas/despacho-cuadrillas",
-            },
-             {
-              id: 5,
-              label: "Liquidación",
-              path: "/logistica/altas/liquidacion",
-            },
-              {
-              id: 6,
-              label: "Gestion SOT",
-              path: "/logistica/altas/gestion-sot",
-            },
-               {
-              id: 7,
-              label: "Mis liquidaciones",
-              path: "/logistica/altas/mis-liquidaciones",
-            }
-          ],
-        },
-      ],
-    },
-  ];
+  
+  // const routes = [
+  //   {
+  //     id: 1,
+  //     label: "Logistica",
+  //     path: "",
+  //     children: [
+  //       {
+  //         id: 1,
+  //         label: "Altas",
+  //         path: "",
+  //         children: [
+  //           {
+  //             id: 1,
+  //             label: "Kardex",
+  //             path: "/logistica/altas/kardex",
+  //           },
+  //           {
+  //             id: 2,
+  //             label: "Abastecimiento",
+  //             path: "/logistica/altas/solicitud-abastecimiento",
+  //           },
+  //           {
+  //             id: 3,
+  //             label: "Recepción Materiales",
+  //             path: "/logistica/altas/gestion-materiales",
+  //           },
+  //           {
+  //             id: 4,
+  //             label: "Despacho cuadrillas",
+  //             path: "/logistica/altas/despacho-cuadrillas",
+  //           },
+  //            {
+  //             id: 5,
+  //             label: "Liquidación",
+  //             path: "/logistica/altas/liquidacion",
+  //           },
+  //             {
+  //             id: 6,
+  //             label: "Gestion SOT",
+  //             path: "/logistica/altas/gestion-sot",
+  //           },
+  //              {
+  //             id: 7,
+  //             label: "Mis liquidaciones",
+  //             path: "/logistica/altas/mis-liquidaciones",
+  //           }
+  //         ],
+  //       },
+  //     ],
+  //   },
+  // ];
   return (
     <nav className="flex flex-col gap-1 w-full py-2">
-      {routes.map((item) => (
-        <MenuItemComponent key={item.path} item={item} />
+      {drawer.routes.map((item,index) => (
+        <MenuItemComponent key={`${item.path}-${index}`} item={item} />
       ))}
     </nav>
   );

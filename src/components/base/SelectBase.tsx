@@ -21,7 +21,7 @@ type SelectBaseProps = {
   placeholder?: string;
   color?: string;
   borderColor?: string;
-  size?:"small" | "medium"
+  size?: "small" | "medium";
 };
 
 export default function SelectBase({
@@ -55,6 +55,9 @@ export default function SelectBase({
         fullWidth={fullWidth}
         disabled={disabled}
         sx={{
+          "& .MuiSelect-root ": {
+            borderRadius: "12px",
+          },
           "& .MuiInputLabel-root": {
             fontFamily: "'M PLUS Rounded 1c', sans-serif",
             color: borderColor,

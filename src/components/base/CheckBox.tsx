@@ -24,9 +24,14 @@ export default function CheckBoxBase({
   size = "medium",
   sx,
 }: CheckBoxBaseProps) {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+  function handleChange (e:any){
     onChange?.(e.target.checked);
-  };
+  }
+  
+  // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   onChange?.(e.target.checked);
+  // };
 
   const checkbox = (
     <Checkbox

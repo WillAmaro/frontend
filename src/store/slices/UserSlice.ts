@@ -9,8 +9,8 @@ interface UserState {
   email_verified_at: string | null;
   created_at: string;
   updated_at: string;
-  tenant_id: number;
-  role_id: number;
+  tenant_id: string;
+  role_id: string;
   defaultPath:string;
   role: {
     id: number;
@@ -37,18 +37,20 @@ interface UserState {
   } | null;
   token: string;
   refreshToken: string;
+  user_id:string
 }
 
 // Estado inicial vacío
 const initialState: UserState = {
   id: 0,
   name: "",
+  user_id:"",
   email: "",
   email_verified_at: null,
   created_at: "",
   updated_at: "",
-  tenant_id: 0,
-  role_id: 0,
+  tenant_id: "",
+  role_id:"",
   role: null,
   person: null,
   token: "",

@@ -278,7 +278,7 @@ export default function DrawerAppBar(props: Props) {
             </IconButton>
 
             {/* Notifications */}
-            <IconButton
+            {/* <IconButton
               sx={{
                 color: "#6b7280",
                 "&:hover": { backgroundColor: "#f3f4f6" },
@@ -287,7 +287,7 @@ export default function DrawerAppBar(props: Props) {
               <Badge badgeContent={3} color="error">
                 <NotificationsIcon />
               </Badge>
-            </IconButton>
+            </IconButton> */}
 
             {/* Profile Menu */}
             <div
@@ -303,7 +303,7 @@ export default function DrawerAppBar(props: Props) {
                   {user.name || "Usuario"}
                 </Typography>
                 <Typography variant="caption" sx={{ color: "#6b7280" }}>
-                  Administrador
+                  {user.role?.name || "Usuario"}
                 </Typography>
               </div>
               <Avatar
