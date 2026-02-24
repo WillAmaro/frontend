@@ -55,6 +55,7 @@ export default function SelectBase({
         fullWidth={fullWidth}
         disabled={disabled}
         sx={{
+
           "& .MuiSelect-root ": {
             borderRadius: "12px",
           },
@@ -62,6 +63,7 @@ export default function SelectBase({
             fontFamily: "'M PLUS Rounded 1c', sans-serif",
             color: borderColor,
             fontSize: "small",
+
           },
           "& .MuiSelect-select": {
             fontFamily: "'M PLUS Rounded 1c', sans-serif",
@@ -69,6 +71,7 @@ export default function SelectBase({
           },
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: borderColor,
+            
           },
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: color,

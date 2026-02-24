@@ -7,6 +7,21 @@ import {
 } from "@/src/types/hub.types";
 
 export const hubService = {
+
+  /**
+   * Obtener todos los hubs
+   */
+  getHubs: async (): Promise<HubDTO[]> => {
+    try {
+      const response = await apiClient.get("/api/hub");
+      console.log("✅ Datos recibidos:", response);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching hubs:", error);
+      throw error;
+    }
+  },
+
   /**
    * Obtener todos los hubs por tenant
    */

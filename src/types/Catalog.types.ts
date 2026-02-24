@@ -1,0 +1,18 @@
+export interface CompanyDTO {
+  id: number;
+  reasonSocial: string;
+  ruc: string;
+  status: string;
+}
+
+export interface ProjectDTO {
+  id: number;
+  name: string;
+  companyId: string;
+  status: string;
+}
+
+export interface CatalogDTO {
+  companies: CompanyDTO[];
+  projects: ProjectDTO[];
+}

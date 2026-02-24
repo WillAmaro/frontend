@@ -17,7 +17,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const user = useSelector((state: RootState) => state.user);
 
   useEffect(() => {
-    //  Redirigir al login si no hay token
+    //  Redirigir al login si no hay token 
     if (!user.token) {
       router.push("/login");
       return; // salimos para que no cargue nada más

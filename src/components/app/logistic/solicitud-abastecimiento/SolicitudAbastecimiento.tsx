@@ -1,4271 +1,7 @@
-// // // "use client";
-
-// // // import { useState } from "react";
-// // // import {
-// // //   Box,
-// // //   Card,
-// // //   Typography,
-// // //   TextField,
-// // //   Button,
-// // //   Divider,
-// // //   IconButton,
-// // //   Autocomplete,
-// // //   Alert,
-// // //   Fade,
-// // //   ToggleButtonGroup,
-// // //   ToggleButton,
-// // //   Chip,
-// // //   InputAdornment,
-// // //   Checkbox,
-// // //   Table,
-// // //   TableBody,
-// // //   TableCell,
-// // //   TableContainer,
-// // //   TableHead,
-// // //   TableRow,
-// // //   Paper,
-// // //   Grow,
-// // // } from "@mui/material";
-// // // import {
-// // //   AddCircleOutline,
-// // //   DeleteOutline,
-// // //   SaveOutlined,
-// // //   ListAltOutlined,
-// // //   BusinessOutlined,
-// // //   FileDownloadOutlined,
-// // //   SearchOutlined,
-// // //   FilterListOutlined,
-// // // } from "@mui/icons-material";
-// // // import { TitleCard } from "@/src/components/base/TitleCard";
-// // // import { SectionHeader } from "@/src/components/base/SectionHeader";
-// // // import * as XLSX from "xlsx";
-// // // import ButtonBase from "@/src/components/base/ButtonBase";
-
-// // // type EntidadDestino = "CLARO" | "LEMCORP";
-
-// // // interface ItemMaterial {
-// // //   id: string;
-// // //   codigo: string;
-// // //   descripcion: string;
-// // //   uom: string;
-// // //   tipo: string;
-// // //   seleccionado: boolean;
-// // //   cantidad: string;
-// // // }
-
-// // // interface ItemHerramienta {
-// // //   id: string;
-// // //   codigo: string;
-// // //   descripcion: string;
-// // //   uom: string;
-// // //   seleccionado: boolean;
-// // //   cantidad: string;
-// // // }
-
-// // // interface ItemEquipo {
-// // //   id: string;
-// // //   serie: string;
-// // //   codigo: string;
-// // //   descripcion: string;
-// // //   cantidad: string;
-// // // }
-
-// // // // Datos de ejemplo
-// // // const regionesDisponibles = ["Lima", "Arequipa", "Cusco", "Trujillo", "Piura"];
-
-// // // // Catálogo completo de materiales
-// // // const catalogoMaterialesInicial: ItemMaterial[] = [
-// // //   {
-// // //     id: "mat-1",
-// // //     codigo: "1002950",
-// // //     descripcion: "ATADOR DE IDENTIFICACION DE ABONADO",
-// // //     uom: "UND",
-// // //     tipo: "HFC",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "mat-2",
-// // //     codigo: "1004705",
-// // //     descripcion: "CABLE COAXIAL BLANCO RG-6 S/MENSAJERO",
-// // //     uom: "MTS",
-// // //     tipo: "HFC",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "mat-3",
-// // //     codigo: "1003101",
-// // //     descripcion: "CABLE COAXIAL RG-6 AUTOSOPORTADO",
-// // //     uom: "MTS",
-// // //     tipo: "HFC",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "mat-4",
-// // //     codigo: "1033042",
-// // //     descripcion: "CABLE TELEF INTERIOR 2/22 AWG",
-// // //     uom: "MTS",
-// // //     tipo: "HFC",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "mat-5",
-// // //     codigo: "1004692",
-// // //     descripcion: "CABLE UTP CAT5E FTP 4PR/24AWG 04070009",
-// // //     uom: "MTS",
-// // //     tipo: "HFC-FTTH",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "mat-6",
-// // //     codigo: "1004838",
-// // //     descripcion: "CABLE HDMI CHD1-6 MALE TO MALE 2M",
-// // //     uom: "UND",
-// // //     tipo: "HFC",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "mat-7",
-// // //     codigo: "1051697",
-// // //     descripcion: "CONTROL REMOTO AN-4803 ECOSS",
-// // //     uom: "UND",
-// // //     tipo: "HFC",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "mat-8",
-// // //     codigo: "1062712",
-// // //     descripcion: "CONECTOR DE CONTINUIDAD RG6 EX6XL-PLUS",
-// // //     uom: "UND",
-// // //     tipo: "HFC",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "mat-9",
-// // //     codigo: "1002900",
-// // //     descripcion: "CONECTOR PLUG RJ-45",
-// // //     uom: "UND",
-// // //     tipo: "HFC-FTTH",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "mat-10",
-// // //     codigo: "1063021",
-// // //     descripcion: "CONECTOR RJ 11",
-// // //     uom: "UND",
-// // //     tipo: "HFC-FTTH",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "mat-11",
-// // //     codigo: "1003254",
-// // //     descripcion: "DIVISOR INTERIOR 2 VIAS",
-// // //     uom: "UND",
-// // //     tipo: "HFC",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "mat-12",
-// // //     codigo: "1003253",
-// // //     descripcion: "DIVISOR INTERIOR 3 VIAS",
-// // //     uom: "UND",
-// // //     tipo: "HFC",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // // ];
-
-// // // // Catálogo de herramientas
-// // // const catalogoHerramientasInicial: ItemHerramienta[] = [
-// // //   {
-// // //     id: "herr-1",
-// // //     codigo: "H-001",
-// // //     descripcion: "ALICATE DE COMPRESIÓN",
-// // //     uom: "UND",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "herr-2",
-// // //     codigo: "H-002",
-// // //     descripcion: "DESTORNILLADOR PLANO",
-// // //     uom: "UND",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "herr-3",
-// // //     codigo: "H-003",
-// // //     descripcion: "DESTORNILLADOR ESTRELLA",
-// // //     uom: "UND",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "herr-4",
-// // //     codigo: "H-004",
-// // //     descripcion: "PELACABLES RG-6",
-// // //     uom: "UND",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // //   {
-// // //     id: "herr-5",
-// // //     codigo: "H-005",
-// // //     descripcion: "CRIMPADORA RJ-45",
-// // //     uom: "UND",
-// // //     seleccionado: false,
-// // //     cantidad: "0",
-// // //   },
-// // // ];
-
-// // // // Catálogo de equipos con series
-// // // const catalogoEquipos: ItemEquipo[] = [
-// // //   {
-// // //     id: "equipo-1",
-// // //     serie: "3954GM464202082",
-// // //     codigo: "4059271",
-// // //     descripcion: "MODEM ARRIS TG3442A 32x8 3.1",
-// // //     cantidad: "1",
-// // //   },
-// // //   {
-// // //     id: "equipo-2",
-// // //     serie: "2AD4GL196701282",
-// // //     codigo: "4059271",
-// // //     descripcion: "MODEM ARRIS TG3442A 32x8 3.1",
-// // //     cantidad: "1",
-// // //   },
-// // //   {
-// // //     id: "equipo-3",
-// // //     serie: "3954GM464203146",
-// // //     codigo: "4059271",
-// // //     descripcion: "MODEM ARRIS TG3442A 32x8 3.1",
-// // //     cantidad: "1",
-// // //   },
-// // //   {
-// // //     id: "equipo-4",
-// // //     serie: "DM2203718001862",
-// // //     codigo: "4050441",
-// // //     descripcion: "MODEM SAGEMCOM F3890V3 32X8SB DOCSIS 3.1",
-// // //     cantidad: "1",
-// // //   },
-// // //   {
-// // //     id: "equipo-5",
-// // //     serie: "DM2110118001445",
-// // //     codigo: "4050441",
-// // //     descripcion: "MODEM SAGEMCOM F3890V3 32X8SB DOCSIS 3.1",
-// // //     cantidad: "1",
-// // //   },
-// // //   {
-// // //     id: "equipo-6",
-// // //     serie: "MV2234VR8847",
-// // //     codigo: "4007984",
-// // //     descripcion: "DECODIFICADOR MOTOROLA HD DCX-525",
-// // //     cantidad: "1",
-// // //   },
-// // //   {
-// // //     id: "equipo-7",
-// // //     serie: "M91843ERZ794",
-// // //     codigo: "4007984",
-// // //     descripcion: "DECODIFICADOR MOTOROLA HD DCX-525",
-// // //     cantidad: "1",
-// // //   },
-// // //   {
-// // //     id: "equipo-8",
-// // //     serie: "4857544386D1EBB4",
-// // //     codigo: "4076358",
-// // //     descripcion: "ROUTER ONT HG8145X613 50088770 HUAWEI",
-// // //     cantidad: "1",
-// // //   },
-// // //   {
-// // //     id: "equipo-9",
-// // //     serie: "4857544386CF35B4",
-// // //     codigo: "4076358",
-// // //     descripcion: "ROUTER ONT HG8145X613 50088770 HUAWEI",
-// // //     cantidad: "1",
-// // //   },
-// // //   {
-// // //     id: "equipo-10",
-// // //     serie: "4857544386DAB8B4",
-// // //     codigo: "4076358",
-// // //     descripcion: "ROUTER ONT HG8145X613 50088770 HUAWEI",
-// // //     cantidad: "1",
-// // //   },
-// // // ];
-
-// // // const categoriaConfig = {
-// // //   MATERIAL: {
-// // //     label: "Material",
-// // //     color: "#ed6c02",
-// // //     icon: "📦",
-// // //   },
-// // //   HERRAMIENTA: {
-// // //     label: "Herramienta",
-// // //     color: "#1976d2",
-// // //     icon: "🔧",
-// // //   },
-// // //   EQUIPO: {
-// // //     label: "Equipo",
-// // //     color: "#2e7d32",
-// // //     icon: "⚙️",
-// // //   },
-// // // };
-
-// // // const entidadConfig = {
-// // //   CLARO: {
-// // //     label: "CLARO",
-// // //     color: "#d32f2f",
-// // //     bgColor: "#ffebee",
-// // //   },
-// // //   LEMCORP: {
-// // //     label: "LEMCORP",
-// // //     color: "#1976d2",
-// // //     bgColor: "#e3f2fd",
-// // //   },
-// // // };
-
-// // // export default function SolicitudAbastecimiento() {
-// // //   const [entidadDestino, setEntidadDestino] = useState<EntidadDestino>("CLARO");
-// // //   const [fechaSolicitud, setFechaSolicitud] = useState("");
-// // //   const [fechaSolicitudFin, setFechaSolicitudFin] = useState("");
-// // //   const [region, setRegion] = useState<string | null>(null);
-
-// // //   // Estados para materiales, herramientas y equipos
-// // //   const [materiales, setMateriales] = useState<ItemMaterial[]>(
-// // //     catalogoMaterialesInicial
-// // //   );
-// // //   const [herramientas, setHerramientas] = useState<ItemHerramienta[]>(
-// // //     catalogoHerramientasInicial
-// // //   );
-// // //   const [equipos, setEquipos] = useState<ItemEquipo[]>([]);
-
-// // //   const [showSuccess, setShowSuccess] = useState(false);
-// // //   const [showFilterInfo, setShowFilterInfo] = useState(false);
-
-// // //   // Estado para el buscador de equipos
-// // //   const [searchEquipo, setSearchEquipo] = useState("");
-// // //   const [equipoEncontrado, setEquipoEncontrado] = useState<ItemEquipo | null>(
-// // //     null
-// // //   );
-
-// // //   const handleEntidadChange = (
-// // //     _event: React.MouseEvent<HTMLElement>,
-// // //     newEntidad: EntidadDestino | null
-// // //   ) => {
-// // //     if (newEntidad !== null) {
-// // //       setMateriales(catalogoMaterialesInicial)
-// // //       setHerramientas(catalogoHerramientasInicial)
-// // //       setEntidadDestino(newEntidad);
-// // //     }
-// // //   };
-
-// // //   // Handler para aplicar filtros y obtener consumos del período
-// // //   const handleAplicarFiltros = () => {
-// // //     // TODO: Aquí iría la llamada al API para obtener consumos del período
-// // //     // Simulación de datos de consumo
-// // //     const materialesConsumidos = [
-// // //       { codigo: "1003101", cantidad: "150" },
-// // //       { codigo: "1004692", cantidad: "200" },
-// // //       { codigo: "1062712", cantidad: "50" },
-// // //     ];
-
-// // //     const herramientasConsumidas = [
-// // //       { codigo: "H-001", cantidad: "3" },
-// // //       { codigo: "H-004", cantidad: "5" },
-// // //     ];
-
-// // //     const equiposConsumidos: ItemEquipo[] = [
-// // //       {
-// // //         id: "eq-consumed-1",
-// // //         serie: "3954GM464202082",
-// // //         codigo: "4059271",
-// // //         descripcion: "MODEM ARRIS TG3442A 32x8 3.1",
-// // //         cantidad: "5",
-// // //       },
-// // //     ];
-
-// // //     // Actualizar materiales con cantidades consumidas
-// // //     setMateriales((prev) =>
-// // //       prev.map((mat) => {
-// // //         const consumido = materialesConsumidos.find(
-// // //           (c) => c.codigo === mat.codigo
-// // //         );
-// // //         if (consumido) {
-// // //           return {
-// // //             ...mat,
-// // //             seleccionado: true,
-// // //             cantidad: consumido.cantidad,
-// // //           };
-// // //         }
-// // //         return mat;
-// // //       })
-// // //     );
-
-// // //     // Actualizar herramientas con cantidades consumidas
-// // //     setHerramientas((prev) =>
-// // //       prev.map((herr) => {
-// // //         const consumido = herramientasConsumidas.find(
-// // //           (c) => c.codigo === herr.codigo
-// // //         );
-// // //         if (consumido) {
-// // //           return {
-// // //             ...herr,
-// // //             seleccionado: true,
-// // //             cantidad: consumido.cantidad,
-// // //           };
-// // //         }
-// // //         return herr;
-// // //       })
-// // //     );
-
-// // //     // Agregar equipos consumidos
-// // //     setEquipos((prev) => [...prev, ...equiposConsumidos]);
-
-// // //     setShowFilterInfo(true);
-// // //     setTimeout(() => setShowFilterInfo(false), 5000);
-// // //   };
-
-// // //   // Toggle checkbox material
-// // //   const toggleMaterialSeleccionado = (id: string) => {
-// // //     setMateriales((prev) =>
-// // //       prev.map((mat) =>
-// // //         mat.id === id ? { ...mat, seleccionado: !mat.seleccionado } : mat
-// // //       )
-// // //     );
-// // //   };
-
-// // //   // Actualizar cantidad material
-// // //   const actualizarCantidadMaterial = (id: string, cantidad: string) => {
-// // //     setMateriales((prev) =>
-// // //       prev.map((mat) => (mat.id === id ? { ...mat, cantidad } : mat))
-// // //     );
-// // //   };
-
-// // //   // Toggle checkbox herramienta
-// // //   const toggleHerramientaSeleccionada = (id: string) => {
-// // //     setHerramientas((prev) =>
-// // //       prev.map((herr) =>
-// // //         herr.id === id ? { ...herr, seleccionado: !herr.seleccionado } : herr
-// // //       )
-// // //     );
-// // //   };
-
-// // //   // Actualizar cantidad herramienta
-// // //   const actualizarCantidadHerramienta = (id: string, cantidad: string) => {
-// // //     setHerramientas((prev) =>
-// // //       prev.map((herr) => (herr.id === id ? { ...herr, cantidad } : herr))
-// // //     );
-// // //   };
-
-// // //   // Buscar equipo
-// // //   const buscarEquipo = () => {
-// // //     const equipoEncontrado = catalogoEquipos.find(
-// // //       (e) =>
-// // //         e.serie.toLowerCase().includes(searchEquipo.toLowerCase()) ||
-// // //         e.codigo.toLowerCase().includes(searchEquipo.toLowerCase())
-// // //     );
-// // //     setEquipoEncontrado(equipoEncontrado || null);
-// // //   };
-
-// // //   // Agregar equipo
-// // //   const agregarEquipo = () => {
-// // //     if (equipoEncontrado) {
-// // //       const nuevoEquipo: ItemEquipo = {
-// // //         id: `equip-${Date.now()}`,
-// // //         serie: equipoEncontrado.serie,
-// // //         codigo: equipoEncontrado.codigo,
-// // //         descripcion: equipoEncontrado.descripcion,
-// // //         cantidad: "",
-// // //       };
-// // //       setEquipos([...equipos, nuevoEquipo]);
-// // //       setSearchEquipo("");
-// // //       setEquipoEncontrado(null);
-// // //     }
-// // //   };
-
-// // //   // Actualizar cantidad equipo
-// // //   const actualizarCantidadEquipo = (id: string, cantidad: string) => {
-// // //     setEquipos((prev) =>
-// // //       prev.map((eq) => (eq.id === id ? { ...eq, cantidad } : eq))
-// // //     );
-// // //   };
-
-// // //   // Eliminar equipo
-// // //   const eliminarEquipo = (id: string) => {
-// // //     setEquipos(equipos.filter((eq) => eq.id !== id));
-// // //   };
-
-// // //   const handleGuardarBorrador = () => {
-// // //     console.log("Guardando borrador...", {
-// // //       entidadDestino,
-// // //       fechaSolicitud,
-// // //       fechaSolicitudFin,
-// // //       region,
-// // //       materiales: materiales.filter((m) => m.seleccionado),
-// // //       herramientas: herramientas.filter((h) => h.seleccionado),
-// // //       equipos,
-// // //     });
-// // //     alert("Borrador guardado correctamente");
-// // //   };
-
-// // //   // Exportar Excel por categoría individual
-// // //   const exportarMateriales = () => {
-// // //     const materialesSeleccionados = materiales.filter((m) => m.seleccionado);
-// // //     if (materialesSeleccionados.length === 0) {
-// // //       alert("No hay materiales seleccionados para exportar");
-// // //       return;
-// // //     }
-// // //     exportarCategoria(
-// // //       materialesSeleccionados.map((m) => ({
-// // //         Código: m.codigo,
-// // //         Descripción: m.descripcion,
-// // //         Cantidad: m.cantidad,
-// // //         "Unidad de Medida": m.uom,
-// // //         Tipo: m.tipo,
-// // //       })),
-// // //       "Materiales"
-// // //     );
-// // //   };
-
-// // //   const exportarHerramientas = () => {
-// // //     const herramientasSeleccionadas = herramientas.filter(
-// // //       (h) => h.seleccionado
-// // //     );
-// // //     if (herramientasSeleccionadas.length === 0) {
-// // //       alert("No hay herramientas seleccionadas para exportar");
-// // //       return;
-// // //     }
-// // //     exportarCategoria(
-// // //       herramientasSeleccionadas.map((h) => ({
-// // //         Código: h.codigo,
-// // //         Descripción: h.descripcion,
-// // //         Cantidad: h.cantidad,
-// // //         "Unidad de Medida": h.uom,
-// // //       })),
-// // //       "Herramientas"
-// // //     );
-// // //   };
-
-// // //   const exportarEquipos = () => {
-// // //     if (equipos.length === 0) {
-// // //       alert("No hay equipos agregados para exportar");
-// // //       return;
-// // //     }
-// // //     exportarCategoria(
-// // //       equipos.map((e) => ({
-// // //         Serie: e.serie,
-// // //         Código: e.codigo,
-// // //         Descripción: e.descripcion,
-// // //         Cantidad: e.cantidad,
-// // //       })),
-// // //       "Equipos"
-// // //     );
-// // //   };
-
-// // //   const exportarCategoria = (datos: any[], nombreCategoria: string) => {
-// // //     const worksheet = XLSX.utils.json_to_sheet(datos);
-// // //     const workbook = XLSX.utils.book_new();
-// // //     XLSX.utils.book_append_sheet(workbook, worksheet, nombreCategoria);
-
-// // //     const fecha = new Date().toISOString().split("T")[0];
-// // //     XLSX.writeFile(
-// // //       workbook,
-// // //       `Solicitud_${nombreCategoria}_${entidadDestino}_${fecha}.xlsx`
-// // //     );
-
-// // //     setShowSuccess(true);
-// // //     setTimeout(() => setShowSuccess(false), 3000);
-// // //   };
-
-// // //   const materialesSeleccionados = materiales.filter(
-// // //     (m) => m.seleccionado
-// // //   ).length;
-// // //   const herramientasSeleccionadas = herramientas.filter(
-// // //     (h) => h.seleccionado
-// // //   ).length;
-
-// // //   return (
-// // //     <Box
-// // //       sx={{
-// // //         maxWidth: 1400,
-// // //         mx: "auto",
-// // //         p: 3,
-// // //         display: "flex",
-// // //         flexDirection: "column",
-// // //         gap: 3,
-// // //       }}
-// // //     >
-// // //       {/* Título Principal */}
-// // //       <TitleCard
-// // //         icon={<ListAltOutlined sx={{ fontSize: 32 }} />}
-// // //         title="Solicitud de Abastecimiento"
-// // //         description="Genera solicitudes de materiales, equipos y herramientas para tus proyectos"
-// // //       />
-
-// // //       {/* Formulario de Nueva Solicitud */}
-// // //       <Card
-// // //         elevation={3}
-// // //         sx={{
-// // //           borderRadius: 4,
-// // //           boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-// // //           p: 4,
-// // //         }}
-// // //       >
-// // //         <SectionHeader
-// // //           icon={
-// // //             <AddCircleOutline sx={{ fontSize: 28, color: "primary.main" }} />
-// // //           }
-// // //           title="Nueva Solicitud de Abastecimiento"
-// // //           subtitle="Completa los datos para generar una solicitud de materiales"
-// // //         />
-
-// // //         {/* Mensajes */}
-// // //         {showSuccess && (
-// // //           <Fade in={showSuccess} timeout={600}>
-// // //             <Alert
-// // //               severity="success"
-// // //               sx={{
-// // //                 mb: 3,
-// // //                 borderRadius: 2,
-// // //                 boxShadow: "rgba(46, 125, 50, 0.15) 0px 4px 16px",
-// // //               }}
-// // //             >
-// // //               <Typography variant="body1" fontWeight={600}>
-// // //                 ¡Archivo Excel generado exitosamente!
-// // //               </Typography>
-// // //             </Alert>
-// // //           </Fade>
-// // //         )}
-
-// // //         {showFilterInfo && (
-// // //           <Fade in={showFilterInfo} timeout={600}>
-// // //             <Alert
-// // //               severity="info"
-// // //               sx={{
-// // //                 mb: 3,
-// // //                 borderRadius: 2,
-// // //                 boxShadow: "rgba(2, 136, 209, 0.15) 0px 4px 16px",
-// // //               }}
-// // //             >
-// // //               <Typography variant="body1" fontWeight={600}>
-// // //                 ✅ Filtros aplicados correctamente
-// // //               </Typography>
-// // //               <Typography variant="body2">
-// // //                 Se han cargado los consumos del período seleccionado. Puedes
-// // //                 ajustar las cantidades según tus necesidades.
-// // //               </Typography>
-// // //             </Alert>
-// // //           </Fade>
-// // //         )}
-
-// // //         {/* Selector de Entidad Destino */}
-// // //         <Box sx={{ mb: 3 }}>
-// // //           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-// // //             <BusinessOutlined sx={{ color: "primary.main", fontSize: 24 }} />
-// // //             <Typography variant="subtitle1" fontWeight={600}>
-// // //               Entidad de destino
-// // //             </Typography>
-// // //           </Box>
-// // //           <ToggleButtonGroup
-// // //             value={entidadDestino}
-// // //             exclusive
-// // //             onChange={handleEntidadChange}
-// // //             aria-label="Entidad destino"
-// // //             fullWidth
-// // //             sx={{
-// // //               gap: 2,
-// // //               "& .MuiToggleButton-root": {
-// // //                 borderRadius: 2,
-// // //                 border: "2px solid",
-// // //                 textTransform: "none",
-// // //                 py: 1.5,
-// // //                 transition: "all 0.3s ease",
-// // //                 "&:hover": {
-// // //                   transform: "translateY(-2px)",
-// // //                 },
-// // //               },
-// // //             }}
-// // //           >
-// // //             <ToggleButton
-// // //               value="CLARO"
-// // //               sx={{
-// // //                 borderColor: entidadConfig.CLARO.color,
-// // //                 "&.Mui-selected": {
-// // //                   bgcolor: entidadConfig.CLARO.bgColor,
-// // //                   borderColor: entidadConfig.CLARO.color,
-// // //                   color: entidadConfig.CLARO.color,
-// // //                   fontWeight: 700,
-// // //                   "&:hover": {
-// // //                     bgcolor: entidadConfig.CLARO.bgColor,
-// // //                   },
-// // //                 },
-// // //               }}
-// // //             >
-// // //               <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-// // //                 <Typography variant="body2" fontWeight={600}>
-// // //                   📱 CLARO
-// // //                 </Typography>
-// // //                 <Typography variant="caption" color="text.secondary">
-// // //                   Exporta archivos separados
-// // //                 </Typography>
-// // //               </Box>
-// // //             </ToggleButton>
-
-// // //             <ToggleButton
-// // //               value="LEMCORP"
-// // //               sx={{
-// // //                 borderColor: entidadConfig.LEMCORP.color,
-// // //                 "&.Mui-selected": {
-// // //                   bgcolor: entidadConfig.LEMCORP.bgColor,
-// // //                   borderColor: entidadConfig.LEMCORP.color,
-// // //                   color: entidadConfig.LEMCORP.color,
-// // //                   fontWeight: 700,
-// // //                   "&:hover": {
-// // //                     bgcolor: entidadConfig.LEMCORP.bgColor,
-// // //                   },
-// // //                 },
-// // //               }}
-// // //             >
-// // //               <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-// // //                 <Typography variant="body2" fontWeight={600}>
-// // //                   🏢 LEMCORP
-// // //                 </Typography>
-// // //                 <Typography variant="caption" color="text.secondary">
-// // //                   Exporta archivo consolidado
-// // //                 </Typography>
-// // //               </Box>
-// // //             </ToggleButton>
-// // //           </ToggleButtonGroup>
-// // //         </Box>
-
-// // //         <Divider sx={{ my: 3 }} />
-
-// // //         {/* Filtros y Búsqueda */}
-// // //         <Box sx={{ mb: 3 }}>
-// // //           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-// // //             <FilterListOutlined sx={{ color: "info.main", fontSize: 24 }} />
-// // //             <Typography variant="subtitle1" fontWeight={600}>
-// // //               Filtros de búsqueda
-// // //             </Typography>
-// // //           </Box>
-
-// // //           <Box
-// // //             sx={{
-// // //               display: "flex",
-// // //               gap: 2,
-// // //               flexWrap: "wrap",
-// // //               alignItems: "flex-end",
-// // //             }}
-// // //           >
-// // //             <Box sx={{ flex: "1 1 200px" }}>
-// // //               <Typography
-// // //                 variant="body2"
-// // //                 color="text.secondary"
-// // //                 fontWeight={600}
-// // //                 mb={1}
-// // //               >
-// // //                 Fecha Inicio
-// // //               </Typography>
-// // //               <TextField
-// // //                 type="date"
-// // //                 fullWidth
-// // //                 value={fechaSolicitud}
-// // //                 onChange={(e) => setFechaSolicitud(e.target.value)}
-// // //                 size="small"
-// // //                 InputLabelProps={{ shrink: true }}
-// // //               />
-// // //             </Box>
-
-// // //             <Box sx={{ flex: "1 1 200px" }}>
-// // //               <Typography
-// // //                 variant="body2"
-// // //                 color="text.secondary"
-// // //                 fontWeight={600}
-// // //                 mb={1}
-// // //               >
-// // //                 Fecha Fin
-// // //               </Typography>
-// // //               <TextField
-// // //                 type="date"
-// // //                 fullWidth
-// // //                 value={fechaSolicitudFin}
-// // //                 onChange={(e) => setFechaSolicitudFin(e.target.value)}
-// // //                 size="small"
-// // //                 InputLabelProps={{ shrink: true }}
-// // //               />
-// // //             </Box>
-
-// // //             <Box sx={{ flex: "1 1 250px" }}>
-// // //               <Typography
-// // //                 variant="body2"
-// // //                 color="text.secondary"
-// // //                 fontWeight={600}
-// // //                 mb={1}
-// // //               >
-// // //                 Región
-// // //               </Typography>
-// // //               <Autocomplete
-// // //                 value={region}
-// // //                 onChange={(_, newValue) => setRegion(newValue)}
-// // //                 options={regionesDisponibles}
-// // //                 renderInput={(params) => (
-// // //                   <TextField
-// // //                     {...params}
-// // //                     placeholder="Selecciona región"
-// // //                     size="small"
-// // //                   />
-// // //                 )}
-// // //                 size="small"
-// // //               />
-// // //             </Box>
-// // //             <ButtonBase
-// // //               onClick={handleAplicarFiltros}
-// // //               startIcon={<SearchOutlined />}
-// // //               label="Busqueda"
-// // //             />
-// // //             {/* <Button
-// // //               variant="contained"
-// // //               size="large"
-// // //               startIcon={<SearchOutlined />}
-// // //               onClick={handleAplicarFiltros}
-// // //               sx={{
-// // //                 height: 40,
-// // //                 px: 4,
-// // //                 textTransform: "none",
-// // //               }}
-// // //             >
-// // //               APLICAR FILTROS
-// // //             </Button> */}
-// // //           </Box>
-// // //         </Box>
-
-// // //         <Divider sx={{ my: 3 }} />
-
-// // //         {/* SECCIÓN MATERIALES */}
-// // //         <Box sx={{ mb: 4 }}>
-// // //           <Box
-// // //             sx={{
-// // //               display: "flex",
-// // //               alignItems: "center",
-// // //               justifyContent: "space-between",
-// // //               mb: 2,
-// // //             }}
-// // //           >
-// // //             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-// // //               <Typography
-// // //                 variant="body2"
-// // //                 fontWeight={600}
-// // //                 sx={{ color: categoriaConfig.MATERIAL.color }}
-// // //               >
-// // //                 {categoriaConfig.MATERIAL.icon} Materiales
-// // //               </Typography>
-// // //               <Chip
-// // //                 label={`${materialesSeleccionados} seleccionados`}
-// // //                 size="small"
-// // //                 sx={{
-// // //                   bgcolor: categoriaConfig.MATERIAL.color,
-// // //                   color: "white",
-// // //                   fontWeight: 600,
-// // //                 }}
-// // //               />
-// // //             </Box>
-// // //             <ButtonBase
-// // //               variant="contained"
-// // //               size="small"
-// // //               label="Exportar materiales"
-// // //               startIcon={<FileDownloadOutlined />}
-// // //               onClick={exportarMateriales}
-// // //               disabled={materialesSeleccionados === 0}
-// // //               sx={{
-// // //                 bgcolor: categoriaConfig.MATERIAL.color,
-// // //                 "&:hover": {
-// // //                   bgcolor: categoriaConfig.MATERIAL.color,
-// // //                   filter: "brightness(0.9)",
-// // //                 },
-// // //                 textTransform: "none",
-// // //               }}
-// // //             />
-// // //           </Box>
-
-// // //           <TableContainer
-// // //             component={Paper}
-// // //             sx={{
-// // //               maxHeight: 400,
-// // //               border: "2px solid",
-// // //               borderColor: `${categoriaConfig.MATERIAL.color}30`,
-// // //             }}
-// // //           >
-// // //             <Table stickyHeader size="small">
-// // //               <TableHead>
-// // //                 <TableRow>
-// // //                   <TableCell
-// // //                     padding="checkbox"
-// // //                     sx={{ bgcolor: "background.paper" }}
-// // //                   >
-// // //                     <Checkbox disabled />
-// // //                   </TableCell>
-// // //                   <TableCell
-// // //                     sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-// // //                   >
-// // //                     Código
-// // //                   </TableCell>
-// // //                   <TableCell
-// // //                     sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-// // //                   >
-// // //                     Descripción
-// // //                   </TableCell>
-// // //                   <TableCell
-// // //                     sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-// // //                   >
-// // //                     Tipo
-// // //                   </TableCell>
-// // //                   <TableCell
-// // //                     sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-// // //                   >
-// // //                     UOM
-// // //                   </TableCell>
-// // //                   <TableCell
-// // //                     sx={{
-// // //                       fontWeight: 700,
-// // //                       bgcolor: "background.paper",
-// // //                       width: 150,
-// // //                     }}
-// // //                   >
-// // //                     Cantidad
-// // //                   </TableCell>
-// // //                 </TableRow>
-// // //               </TableHead>
-// // //               <TableBody>
-// // //                 {materiales.map((material) => (
-// // //                   <TableRow
-// // //                     key={material.id}
-// // //                     sx={{
-// // //                       "&:hover": { bgcolor: "action.hover" },
-// // //                       bgcolor: material.seleccionado
-// // //                         ? `${categoriaConfig.MATERIAL.color}10`
-// // //                         : "inherit",
-// // //                     }}
-// // //                   >
-// // //                     <TableCell padding="checkbox">
-// // //                       <Checkbox
-// // //                         checked={material.seleccionado}
-// // //                         onChange={() => toggleMaterialSeleccionado(material.id)}
-// // //                         sx={{
-// // //                           color: categoriaConfig.MATERIAL.color,
-// // //                           "&.Mui-checked": {
-// // //                             color: categoriaConfig.MATERIAL.color,
-// // //                           },
-// // //                         }}
-// // //                       />
-// // //                     </TableCell>
-// // //                     <TableCell>
-// // //                       <Typography variant="body2" fontWeight={600}>
-// // //                         {material.codigo}
-// // //                       </Typography>
-// // //                     </TableCell>
-// // //                     <TableCell>
-// // //                       <Typography variant="body2">
-// // //                         {material.descripcion}
-// // //                       </Typography>
-// // //                     </TableCell>
-// // //                     <TableCell>
-// // //                       <Typography variant="body2" color="text.secondary">
-// // //                         {material.tipo}
-// // //                       </Typography>
-// // //                     </TableCell>
-// // //                     <TableCell>
-// // //                       <Typography variant="body2">{material.uom}</Typography>
-// // //                     </TableCell>
-// // //                     <TableCell>
-// // //                       <TextField
-// // //                         type="number"
-// // //                         size="small"
-// // //                         value={material.cantidad}
-// // //                         onChange={(e) =>
-// // //                           actualizarCantidadMaterial(
-// // //                             material.id,
-// // //                             e.target.value
-// // //                           )
-// // //                         }
-// // //                         disabled={!material.seleccionado}
-// // //                         inputProps={{ min: 0 }}
-// // //                         sx={{ width: "100%" }}
-// // //                       />
-// // //                     </TableCell>
-// // //                   </TableRow>
-// // //                 ))}
-// // //               </TableBody>
-// // //             </Table>
-// // //           </TableContainer>
-// // //         </Box>
-
-// // //         {/* SECCIÓN HERRAMIENTAS */}
-// // //         <Box sx={{ mb: 4 }}>
-// // //           <Box
-// // //             sx={{
-// // //               display: "flex",
-// // //               alignItems: "center",
-// // //               justifyContent: "space-between",
-// // //               mb: 2,
-// // //             }}
-// // //           >
-// // //             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-// // //               <Typography
-// // //                 variant="body2"
-// // //                 fontWeight={600}
-// // //                 sx={{ color: categoriaConfig.HERRAMIENTA.color }}
-// // //               >
-// // //                 {categoriaConfig.HERRAMIENTA.icon} Herramientas
-// // //               </Typography>
-// // //               <Chip
-// // //                 label={`${herramientasSeleccionadas} seleccionadas`}
-// // //                 size="small"
-// // //                 sx={{
-// // //                   bgcolor: categoriaConfig.HERRAMIENTA.color,
-// // //                   color: "white",
-// // //                   fontWeight: 600,
-// // //                 }}
-// // //               />
-// // //             </Box>
-// // //             <ButtonBase
-// // //               variant="contained"
-// // //               size="small"
-// // //               label="Exportar Herramientas"
-// // //               startIcon={<FileDownloadOutlined />}
-// // //               onClick={exportarHerramientas}
-// // //               disabled={herramientasSeleccionadas === 0}
-// // //               sx={{
-// // //                 bgcolor: categoriaConfig.HERRAMIENTA.color,
-// // //                 "&:hover": {
-// // //                   bgcolor: categoriaConfig.HERRAMIENTA.color,
-// // //                   filter: "brightness(0.9)",
-// // //                 },
-// // //                 textTransform: "none",
-// // //               }}
-// // //             />
-// // //           </Box>
-
-// // //           <TableContainer
-// // //             component={Paper}
-// // //             sx={{
-// // //               maxHeight: 400,
-// // //               border: "2px solid",
-// // //               borderColor: `${categoriaConfig.HERRAMIENTA.color}30`,
-// // //             }}
-// // //           >
-// // //             <Table stickyHeader size="small">
-// // //               <TableHead>
-// // //                 <TableRow>
-// // //                   <TableCell
-// // //                     padding="checkbox"
-// // //                     sx={{ bgcolor: "background.paper" }}
-// // //                   >
-// // //                     <Checkbox disabled />
-// // //                   </TableCell>
-// // //                   <TableCell
-// // //                     sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-// // //                   >
-// // //                     Código
-// // //                   </TableCell>
-// // //                   <TableCell
-// // //                     sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-// // //                   >
-// // //                     Descripción
-// // //                   </TableCell>
-// // //                   <TableCell
-// // //                     sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-// // //                   >
-// // //                     UOM
-// // //                   </TableCell>
-// // //                   <TableCell
-// // //                     sx={{
-// // //                       fontWeight: 700,
-// // //                       bgcolor: "background.paper",
-// // //                       width: 150,
-// // //                     }}
-// // //                   >
-// // //                     Cantidad
-// // //                   </TableCell>
-// // //                 </TableRow>
-// // //               </TableHead>
-// // //               <TableBody>
-// // //                 {herramientas.map((herramienta) => (
-// // //                   <TableRow
-// // //                     key={herramienta.id}
-// // //                     sx={{
-// // //                       "&:hover": { bgcolor: "action.hover" },
-// // //                       bgcolor: herramienta.seleccionado
-// // //                         ? `${categoriaConfig.HERRAMIENTA.color}10`
-// // //                         : "inherit",
-// // //                     }}
-// // //                   >
-// // //                     <TableCell padding="checkbox">
-// // //                       <Checkbox
-// // //                         checked={herramienta.seleccionado}
-// // //                         onChange={() =>
-// // //                           toggleHerramientaSeleccionada(herramienta.id)
-// // //                         }
-// // //                         sx={{
-// // //                           color: categoriaConfig.HERRAMIENTA.color,
-// // //                           "&.Mui-checked": {
-// // //                             color: categoriaConfig.HERRAMIENTA.color,
-// // //                           },
-// // //                         }}
-// // //                       />
-// // //                     </TableCell>
-// // //                     <TableCell>
-// // //                       <Typography variant="body2" fontWeight={600}>
-// // //                         {herramienta.codigo}
-// // //                       </Typography>
-// // //                     </TableCell>
-// // //                     <TableCell>
-// // //                       <Typography variant="body2">
-// // //                         {herramienta.descripcion}
-// // //                       </Typography>
-// // //                     </TableCell>
-// // //                     <TableCell>
-// // //                       <Typography variant="body2">{herramienta.uom}</Typography>
-// // //                     </TableCell>
-// // //                     <TableCell>
-// // //                       <TextField
-// // //                         type="number"
-// // //                         size="small"
-// // //                         value={herramienta.cantidad}
-// // //                         onChange={(e) =>
-// // //                           actualizarCantidadHerramienta(
-// // //                             herramienta.id,
-// // //                             e.target.value
-// // //                           )
-// // //                         }
-// // //                         disabled={!herramienta.seleccionado}
-// // //                         inputProps={{ min: 0 }}
-// // //                         sx={{ width: "100%" }}
-// // //                       />
-// // //                     </TableCell>
-// // //                   </TableRow>
-// // //                 ))}
-// // //               </TableBody>
-// // //             </Table>
-// // //           </TableContainer>
-// // //         </Box>
-
-// // //         {/* SECCIÓN EQUIPOS */}
-// // //         <Box sx={{ mb: 4 }}>
-// // //           <Box
-// // //             sx={{
-// // //               display: "flex",
-// // //               alignItems: "center",
-// // //               justifyContent: "space-between",
-// // //               mb: 2,
-// // //             }}
-// // //           >
-// // //             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-// // //               <Typography
-// // //                 variant="body2"
-// // //                 fontWeight={600}
-// // //                 sx={{ color: categoriaConfig.EQUIPO.color }}
-// // //               >
-// // //                 {categoriaConfig.EQUIPO.icon} Equipos
-// // //               </Typography>
-// // //               <Chip
-// // //                 label={`${equipos.length} agregados`}
-// // //                 size="small"
-// // //                 sx={{
-// // //                   bgcolor: categoriaConfig.EQUIPO.color,
-// // //                   color: "white",
-// // //                   fontWeight: 600,
-// // //                 }}
-// // //               />
-// // //             </Box>
-// // //             <ButtonBase
-// // //               variant="contained"
-// // //               label="Exportar Equipos"
-// // //               size="small"
-// // //               startIcon={<FileDownloadOutlined />}
-// // //               onClick={exportarEquipos}
-// // //               disabled={equipos.length === 0}
-// // //               sx={{
-// // //                 bgcolor: categoriaConfig.EQUIPO.color,
-// // //                 "&:hover": {
-// // //                   bgcolor: categoriaConfig.EQUIPO.color,
-// // //                   filter: "brightness(0.9)",
-// // //                 },
-// // //                 textTransform: "none",
-// // //               }}
-// // //             />
-          
-// // //           </Box>
-
-// // //           {/* Buscador inline de equipos */}
-// // //           <Box
-// // //             sx={{
-// // //               p: 3,
-// // //               mb: 2,
-// // //               bgcolor: `${categoriaConfig.EQUIPO.color}10`,
-// // //               borderRadius: 2,
-// // //               border: "2px solid",
-// // //               borderColor: `${categoriaConfig.EQUIPO.color}30`,
-// // //             }}
-// // //           >
-// // //             <Typography variant="subtitle2" fontWeight={600} mb={2}>
-// // //               🔍 Buscar equipo por SKU o Serie
-// // //             </Typography>
-// // //             <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
-// // //               <TextField
-// // //                 fullWidth
-// // //                 placeholder="Ingresa SKU o número de serie..."
-// // //                 value={searchEquipo}
-// // //                 onChange={(e) => setSearchEquipo(e.target.value)}
-// // //                 onKeyPress={(e) => {
-// // //                   if (e.key === "Enter") buscarEquipo();
-// // //                 }}
-// // //                 size="small"
-// // //                 InputProps={{
-// // //                   endAdornment: (
-// // //                     <InputAdornment position="end">
-// // //                       <IconButton
-// // //                         onClick={buscarEquipo}
-// // //                         edge="end"
-// // //                         size="small"
-// // //                       >
-// // //                         <SearchOutlined />
-// // //                       </IconButton>
-// // //                     </InputAdornment>
-// // //                   ),
-// // //                 }}
-// // //               />
-// // //               <Button
-// // //                 variant="contained"
-// // //                 onClick={agregarEquipo}
-// // //                 disabled={!equipoEncontrado}
-// // //                 sx={{
-// // //                   minWidth: 120,
-// // //                   bgcolor: categoriaConfig.EQUIPO.color,
-// // //                   "&:hover": {
-// // //                     bgcolor: categoriaConfig.EQUIPO.color,
-// // //                     filter: "brightness(0.9)",
-// // //                   },
-// // //                   textTransform: "none",
-// // //                   fontWeight: 600,
-// // //                 }}
-// // //               >
-// // //                 Agregar
-// // //               </Button>
-// // //             </Box>
-
-// // //             {equipoEncontrado && (
-// // //               <Fade in={true}>
-// // //                 <Box
-// // //                   sx={{
-// // //                     mt: 2,
-// // //                     p: 2,
-// // //                     bgcolor: "success.lighter",
-// // //                     borderRadius: 2,
-// // //                     border: "2px solid",
-// // //                     borderColor: "success.main",
-// // //                   }}
-// // //                 >
-// // //                   <Typography
-// // //                     variant="body2"
-// // //                     fontWeight={600}
-// // //                     color="success.dark"
-// // //                     mb={1}
-// // //                   >
-// // //                     ✅ Equipo Encontrado
-// // //                   </Typography>
-// // //                   <Box
-// // //                     sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}
-// // //                   >
-// // //                     <Typography variant="body2">
-// // //                       <strong>Serie:</strong> {equipoEncontrado.serie}
-// // //                     </Typography>
-// // //                     <Typography variant="body2">
-// // //                       <strong>Código:</strong> {equipoEncontrado.codigo}
-// // //                     </Typography>
-// // //                     <Typography variant="body2">
-// // //                       <strong>Descripción:</strong>{" "}
-// // //                       {equipoEncontrado.descripcion}
-// // //                     </Typography>
-// // //                   </Box>
-// // //                 </Box>
-// // //               </Fade>
-// // //             )}
-
-// // //             {searchEquipo && !equipoEncontrado && (
-// // //               <Alert severity="warning" sx={{ mt: 2 }}>
-// // //                 No se encontró ningún equipo con ese SKU o serie.
-// // //               </Alert>
-// // //             )}
-// // //           </Box>
-
-// // //           {/* Lista de equipos agregados */}
-// // //           {equipos.length > 0 && (
-// // //             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-// // //               {equipos.map((equipo, index) => (
-// // //                 <Grow key={equipo.id} in={true} timeout={300 + index * 100}>
-// // //                   <Box
-// // //                     sx={{
-// // //                       display: "flex",
-// // //                       gap: 2,
-// // //                       alignItems: "center",
-// // //                       p: 2,
-// // //                       bgcolor: "background.default",
-// // //                       borderRadius: 2,
-// // //                       border: "2px solid",
-// // //                       borderColor: `${categoriaConfig.EQUIPO.color}30`,
-// // //                       transition: "all 0.3s ease",
-// // //                       "&:hover": {
-// // //                         boxShadow: `0 4px 12px ${categoriaConfig.EQUIPO.color}40`,
-// // //                         transform: "translateX(4px)",
-// // //                       },
-// // //                     }}
-// // //                   >
-// // //                     <TextField
-// // //                       placeholder="Serie"
-// // //                       size="small"
-// // //                       value={equipo.serie}
-// // //                       disabled
-// // //                       sx={{ flex: "0 0 180px" }}
-// // //                     />
-// // //                     <TextField
-// // //                       placeholder="Código"
-// // //                       size="small"
-// // //                       value={equipo.codigo}
-// // //                       disabled
-// // //                       sx={{ flex: "0 0 120px" }}
-// // //                     />
-// // //                     <TextField
-// // //                       placeholder="Descripción del equipo"
-// // //                       fullWidth
-// // //                       size="small"
-// // //                       value={equipo.descripcion}
-// // //                       disabled
-// // //                       sx={{ flex: "1 1 auto" }}
-// // //                     />
-// // //                     <TextField
-// // //                       placeholder="Cantidad"
-// // //                       size="small"
-// // //                       type="number"
-// // //                       value={equipo.cantidad}
-// // //                       onChange={(e) =>
-// // //                         actualizarCantidadEquipo(equipo.id, e.target.value)
-// // //                       }
-// // //                       sx={{ flex: "0 0 120px" }}
-// // //                       inputProps={{ min: 1 }}
-// // //                     />
-// // //                     <IconButton
-// // //                       color="error"
-// // //                       onClick={() => eliminarEquipo(equipo.id)}
-// // //                       sx={{
-// // //                         "&:hover": {
-// // //                           bgcolor: "error.lighter",
-// // //                         },
-// // //                       }}
-// // //                     >
-// // //                       <DeleteOutline />
-// // //                     </IconButton>
-// // //                   </Box>
-// // //                 </Grow>
-// // //               ))}
-// // //             </Box>
-// // //           )}
-
-// // //           {equipos.length === 0 && (
-// // //             <Box
-// // //               sx={{
-// // //                 textAlign: "center",
-// // //                 py: 4,
-// // //                 color: "text.secondary",
-// // //                 bgcolor: "background.default",
-// // //                 borderRadius: 2,
-// // //               }}
-// // //             >
-// // //               <Typography variant="body2">
-// // //                 No hay equipos agregados. Usa el buscador para agregar equipos.
-// // //               </Typography>
-// // //             </Box>
-// // //           )}
-// // //         </Box>
-
-// // //         <Divider sx={{ my: 3 }} />
-
-// // //         {/* Botones de Acción */}
-// // //         <Box
-// // //           sx={{
-// // //             display: "flex",
-// // //             gap: 2,
-// // //             justifyContent: "flex-end",
-// // //             flexWrap: "wrap",
-// // //           }}
-// // //         >
-// // //           <ButtonBase
-// // //             variant="outlined"
-// // //             label="Guardar Borrador"
-// // //             startIcon={<SaveOutlined />}
-// // //             onClick={handleGuardarBorrador}
-// // //             sx={{
-// // //               textTransform: "none",
-// // //               // fontWeight: 600,
-// // //               px: 4,
-// // //               py: 1.2,
-// // //               color: "primary.main",
-// // //             }}
-// // //           />
-
-// // //           <ButtonBase label="Generar solicitud" onClick={() => {}} />
-// // //         </Box>
-// // //       </Card>
-// // //     </Box>
-// // //   );
-// // // }
-// // "use client";
-
-// // import { useState } from "react";
-// // import {
-// //   Box,
-// //   Card,
-// //   Typography,
-// //   TextField,
-// //   Button,
-// //   Divider,
-// //   IconButton,
-// //   Autocomplete,
-// //   Alert,
-// //   Fade,
-// //   ToggleButtonGroup,
-// //   ToggleButton,
-// //   Chip,
-// //   InputAdornment,
-// //   Checkbox,
-// //   Table,
-// //   TableBody,
-// //   TableCell,
-// //   TableContainer,
-// //   TableHead,
-// //   TableRow,
-// //   Paper,
-// //   Grow,
-// //   CircularProgress,
-// // } from "@mui/material";
-// // import {
-// //   AddCircleOutline,
-// //   DeleteOutline,
-// //   SaveOutlined,
-// //   ListAltOutlined,
-// //   BusinessOutlined,
-// //   FileDownloadOutlined,
-// //   SearchOutlined,
-// //   FilterListOutlined,
-// //   RefreshOutlined,
-// // } from "@mui/icons-material";
-// // import { TitleCard } from "@/src/components/base/TitleCard";
-// // import { SectionHeader } from "@/src/components/base/SectionHeader";
-// // import * as XLSX from "xlsx";
-// // import ButtonBase from "@/src/components/base/ButtonBase";
-// // import { API_URL } from "@/src/lib/config";
-
-// // type EntidadDestino = "CLARO" | "LEMCORP";
-// // type ProductType = "EQUIPMENT" | "MATERIAL" | "TOOL";
-
-// // interface SupplyRequestItem {
-// //   id: string;
-// //   itemId: string;
-// //   itemCode: string;
-// //   itemName: string;
-// //   itemDescription: string;
-// //   productType: ProductType;
-// //   quantityUsedInPeriod: number;
-// //   requestedQuantity: number;
-// //   approvedQuantity: number | null;
-// //   deliveredQuantity: number;
-// //   pendingQuantity: number;
-// //   unitPrice: number;
-// //   totalPrice: number;
-// //   priority: number;
-// //   isUrgent: boolean;
-// //   specifications?: string;
-// //   uom?: string;
-// // }
-
-// // interface SupplyRequest {
-// //   id: string;
-// //   requestNumber: string;
-// //   status: string;
-// //   periodStartDate: string;
-// //   periodEndDate: string;
-// //   hubId: string;
-// //   hubName: string | null;
-// //   items: SupplyRequestItem[];
-// //   totalItemsCount: number;
-// //   totalQuantity: number;
-// //   totalEstimatedValue: number;
-// //   requestedDeliveryDate: string;
-// //   notes: string;
-// //   createdAt: string;
-// // }
-
-// // // Datos de ejemplo
-// // const regionesDisponibles = ["Lima", "Arequipa", "Cusco", "Trujillo", "Piura"];
-
-// // const categoriaConfig = {
-// //   MATERIAL: {
-// //     label: "Material",
-// //     color: "#ed6c02",
-// //     icon: "📦",
-// //   },
-// //   TOOL: {
-// //     label: "Herramienta",
-// //     color: "#1976d2",
-// //     icon: "🔧",
-// //   },
-// //   EQUIPMENT: {
-// //     label: "Equipo",
-// //     color: "#2e7d32",
-// //     icon: "⚙️",
-// //   },
-// // };
-
-// // const entidadConfig = {
-// //   CLARO: {
-// //     label: "CLARO",
-// //     color: "#d32f2f",
-// //     bgColor: "#ffebee",
-// //   },
-// //   LEMCORP: {
-// //     label: "LEMCORP",
-// //     color: "#1976d2",
-// //     bgColor: "#e3f2fd",
-// //   },
-// // };
-
-// // export default function SolicitudAbastecimiento() {
-// //   const [entidadDestino, setEntidadDestino] = useState<EntidadDestino>("CLARO");
-// //   const [fechaSolicitud, setFechaSolicitud] = useState("");
-// //   const [fechaSolicitudFin, setFechaSolicitudFin] = useState("");
-// //   const [fechaEntregaSolicitada, setFechaEntregaSolicitada] = useState("");
-// //   const [region, setRegion] = useState<string | null>(null);
-// //   const [notas, setNotas] = useState("");
-
-// //   // Estados para los items cargados desde la API
-// //   const [materialesAPI, setMaterialesAPI] = useState<SupplyRequestItem[]>([]);
-// //   const [herramientasAPI, setHerramientasAPI] = useState<SupplyRequestItem[]>(
-// //     []
-// //   );
-// //   const [equiposAPI, setEquiposAPI] = useState<SupplyRequestItem[]>([]);
-
-// //   // Estados de la solicitud
-// //   const [solicitudCargada, setSolicitudCargada] =
-// //     useState<SupplyRequest | null>(null);
-// //   const [loading, setLoading] = useState(false);
-// //   const [showSuccess, setShowSuccess] = useState(false);
-// //   const [showFilterInfo, setShowFilterInfo] = useState(false);
-// //   const [errorMessage, setErrorMessage] = useState("");
-
-// //   // TODO: Reemplazar con los valores reales de tu sistema
-// //   const TENANT_ID = "758c176f-bdfd-4490-8c7a-c450333f0c60";
-// //   const HUB_ID = "02dff28b-d520-41ff-b2e1-0a2af54b2e15";
-// //   const USER_ID = "758c176f-bdfd-4490-8c7a-c450333f0c60";
-
-// //   const handleEntidadChange = (
-// //     _event: React.MouseEvent<HTMLElement>,
-// //     newEntidad: EntidadDestino | null
-// //   ) => {
-// //     if (newEntidad !== null) {
-// //       setEntidadDestino(newEntidad);
-// //       // Limpiar datos al cambiar entidad
-// //       limpiarDatos();
-// //     }
-// //   };
-
-// //   const limpiarDatos = () => {
-// //     setMaterialesAPI([]);
-// //     setHerramientasAPI([]);
-// //     setEquiposAPI([]);
-// //     setSolicitudCargada(null);
-// //     setErrorMessage("");
-// //   };
-
-// //   // Handler para generar/obtener solicitud desde el período
-// //   const handleGenerarSolicitud = async () => {
-// //     if (!fechaSolicitud || !fechaSolicitudFin) {
-// //       setErrorMessage("Debes seleccionar fecha de inicio y fin del período");
-// //       return;
-// //     }
-
-// //     setLoading(true);
-// //     setErrorMessage("");
-
-// //     try {
-// //       const response = await fetch(`${API_URL}/api/supply-requests/generate`, {
-// //         method: "POST",
-// //         headers: {
-// //           "Content-Type": "application/json",
-// //         },
-// //         body: JSON.stringify({
-// //           tenantId: TENANT_ID,
-// //           hubId: HUB_ID,
-// //           periodStartDate: fechaSolicitud,
-// //           periodEndDate: fechaSolicitudFin,
-// //           requestedBy: USER_ID,
-// //           notes: notas || `Solicitud generada para período ${fechaSolicitud} - ${fechaSolicitudFin}`,
-// //           requestedDeliveryDate: fechaEntregaSolicitada || null,
-// //         }),
-// //       });
-
-// //       if (!response.ok) {
-// //         throw new Error("Error al generar la solicitud de abastecimiento");
-// //       }
-
-// //       const data: SupplyRequest = await response.json();
-      
-// //       // Guardar la solicitud completa
-// //       setSolicitudCargada(data);
-
-// //       // Separar items por tipo de producto
-// //       const materiales = data.items.filter(
-// //         (item) => item.productType === "MATERIAL"
-// //       );
-// //       const herramientas = data.items.filter(
-// //         (item) => item.productType === "TOOL"
-// //       );
-// //       const equipos = data.items.filter(
-// //         (item) => item.productType === "EQUIPMENT"
-// //       );
-
-// //       setMaterialesAPI(materiales);
-// //       setHerramientasAPI(herramientas);
-// //       setEquiposAPI(equipos);
-
-// //       setShowFilterInfo(true);
-// //       setTimeout(() => setShowFilterInfo(false), 5000);
-// //     } catch (error) {
-// //       console.error("Error al generar solicitud:", error);
-// //       setErrorMessage(
-// //         error instanceof Error
-// //           ? error.message
-// //           : "Error al cargar los datos del período"
-// //       );
-// //     } finally {
-// //       setLoading(false);
-// //     }
-// //   };
-
-// //   // Actualizar cantidad solicitada de material
-// //   const actualizarCantidadMaterial = (itemId: string, cantidad: string) => {
-// //     setMaterialesAPI((prev) =>
-// //       prev.map((item) =>
-// //         item.id === itemId
-// //           ? {
-// //               ...item,
-// //               requestedQuantity: parseInt(cantidad) || 0,
-// //               totalPrice: (parseInt(cantidad) || 0) * item.unitPrice,
-// //             }
-// //           : item
-// //       )
-// //     );
-// //   };
-
-// //   // Actualizar cantidad solicitada de herramienta
-// //   const actualizarCantidadHerramienta = (itemId: string, cantidad: string) => {
-// //     setHerramientasAPI((prev) =>
-// //       prev.map((item) =>
-// //         item.id === itemId
-// //           ? {
-// //               ...item,
-// //               requestedQuantity: parseInt(cantidad) || 0,
-// //               totalPrice: (parseInt(cantidad) || 0) * item.unitPrice,
-// //             }
-// //           : item
-// //       )
-// //     );
-// //   };
-
-// //   // Actualizar cantidad solicitada de equipo
-// //   const actualizarCantidadEquipo = (itemId: string, cantidad: string) => {
-// //     setEquiposAPI((prev) =>
-// //       prev.map((item) =>
-// //         item.id === itemId
-// //           ? {
-// //               ...item,
-// //               requestedQuantity: parseInt(cantidad) || 0,
-// //               totalPrice: (parseInt(cantidad) || 0) * item.unitPrice,
-// //             }
-// //           : item
-// //       )
-// //     );
-// //   };
-
-// //   // Marcar item como urgente
-// //   const toggleUrgente = (
-// //     itemId: string,
-// //     tipo: "MATERIAL" | "TOOL" | "EQUIPMENT"
-// //   ) => {
-// //     const setter =
-// //       tipo === "MATERIAL"
-// //         ? setMaterialesAPI
-// //         : tipo === "TOOL"
-// //         ? setHerramientasAPI
-// //         : setEquiposAPI;
-
-// //     setter((prev) =>
-// //       prev.map((item) =>
-// //         item.id === itemId ? { ...item, isUrgent: !item.isUrgent } : item
-// //       )
-// //     );
-// //   };
-
-// //   const handleGuardarBorrador = async () => {
-// //     if (!solicitudCargada) {
-// //       alert("No hay datos para guardar");
-// //       return;
-// //     }
-
-// //     // TODO: Implementar endpoint para actualizar borrador
-// //     console.log("Guardando borrador...", {
-// //       solicitudId: solicitudCargada.id,
-// //       materiales: materialesAPI,
-// //       herramientas: herramientasAPI,
-// //       equipos: equiposAPI,
-// //     });
-// //     alert("Borrador guardado correctamente");
-// //   };
-
-// //   // Exportar Excel por categoría individual
-// //   const exportarMateriales = () => {
-// //     if (materialesAPI.length === 0) {
-// //       alert("No hay materiales para exportar");
-// //       return;
-// //     }
-// //     exportarCategoria(
-// //       materialesAPI.map((m) => ({
-// //         Código: m.itemCode,
-// //         Descripción: m.itemName,
-// //         "Consumo Período": m.quantityUsedInPeriod,
-// //         "Cantidad Solicitada": m.requestedQuantity,
-// //         "Unidad de Medida": m.uom || "UND",
-// //         "Precio Unitario": m.unitPrice,
-// //         "Precio Total": m.totalPrice,
-// //         Urgente: m.isUrgent ? "SÍ" : "NO",
-// //       })),
-// //       "Materiales"
-// //     );
-// //   };
-
-// //   const exportarHerramientas = () => {
-// //     if (herramientasAPI.length === 0) {
-// //       alert("No hay herramientas para exportar");
-// //       return;
-// //     }
-// //     exportarCategoria(
-// //       herramientasAPI.map((h) => ({
-// //         Código: h.itemCode,
-// //         Descripción: h.itemName,
-// //         "Consumo Período": h.quantityUsedInPeriod,
-// //         "Cantidad Solicitada": h.requestedQuantity,
-// //         "Unidad de Medida": h.uom || "UND",
-// //         "Precio Unitario": h.unitPrice,
-// //         "Precio Total": h.totalPrice,
-// //         Urgente: h.isUrgent ? "SÍ" : "NO",
-// //       })),
-// //       "Herramientas"
-// //     );
-// //   };
-
-// //   const exportarEquipos = () => {
-// //     if (equiposAPI.length === 0) {
-// //       alert("No hay equipos para exportar");
-// //       return;
-// //     }
-// //     exportarCategoria(
-// //       equiposAPI.map((e) => ({
-// //         Código: e.itemCode,
-// //         Descripción: e.itemName,
-// //         "Consumo Período": e.quantityUsedInPeriod,
-// //         "Cantidad Solicitada": e.requestedQuantity,
-// //         "Precio Unitario": e.unitPrice,
-// //         "Precio Total": e.totalPrice,
-// //         Urgente: e.isUrgent ? "SÍ" : "NO",
-// //         Especificaciones: e.specifications || "",
-// //       })),
-// //       "Equipos"
-// //     );
-// //   };
-
-// //   const exportarCategoria = (datos: any[], nombreCategoria: string) => {
-// //     const worksheet = XLSX.utils.json_to_sheet(datos);
-// //     const workbook = XLSX.utils.book_new();
-// //     XLSX.utils.book_append_sheet(workbook, worksheet, nombreCategoria);
-
-// //     const fecha = new Date().toISOString().split("T")[0];
-// //     XLSX.writeFile(
-// //       workbook,
-// //       `Solicitud_${nombreCategoria}_${entidadDestino}_${solicitudCargada?.requestNumber || fecha}.xlsx`
-// //     );
-
-// //     setShowSuccess(true);
-// //     setTimeout(() => setShowSuccess(false), 3000);
-// //   };
-
-// //   const totalEstimado =
-// //     materialesAPI.reduce((sum, item) => sum + item.totalPrice, 0) +
-// //     herramientasAPI.reduce((sum, item) => sum + item.totalPrice, 0) +
-// //     equiposAPI.reduce((sum, item) => sum + item.totalPrice, 0);
-
-// //   return (
-// //     <Box
-// //       sx={{
-// //         maxWidth: 1400,
-// //         mx: "auto",
-// //         p: 3,
-// //         display: "flex",
-// //         flexDirection: "column",
-// //         gap: 3,
-// //       }}
-// //     >
-// //       {/* Título Principal */}
-// //       <TitleCard
-// //         icon={<ListAltOutlined sx={{ fontSize: 32 }} />}
-// //         title="Solicitud de Abastecimiento"
-// //         description="Genera solicitudes de materiales, equipos y herramientas basadas en el consumo de períodos anteriores"
-// //       />
-
-// //       {/* Formulario de Nueva Solicitud */}
-// //       <Card
-// //         elevation={3}
-// //         sx={{
-// //           borderRadius: 4,
-// //           boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-// //           p: 4,
-// //         }}
-// //       >
-// //         <SectionHeader
-// //           icon={
-// //             <AddCircleOutline sx={{ fontSize: 28, color: "primary.main" }} />
-// //           }
-// //           title="Nueva Solicitud de Abastecimiento"
-// //           subtitle="Completa los datos del período para analizar el consumo"
-// //         />
-
-// //         {/* Mensajes */}
-// //         {showSuccess && (
-// //           <Fade in={showSuccess} timeout={600}>
-// //             <Alert
-// //               severity="success"
-// //               sx={{
-// //                 mb: 3,
-// //                 borderRadius: 2,
-// //                 boxShadow: "rgba(46, 125, 50, 0.15) 0px 4px 16px",
-// //               }}
-// //             >
-// //               <Typography variant="body1" fontWeight={600}>
-// //                 ¡Archivo Excel generado exitosamente!
-// //               </Typography>
-// //             </Alert>
-// //           </Fade>
-// //         )}
-
-// //         {showFilterInfo && solicitudCargada && (
-// //           <Fade in={showFilterInfo} timeout={600}>
-// //             <Alert
-// //               severity="success"
-// //               sx={{
-// //                 mb: 3,
-// //                 borderRadius: 2,
-// //                 boxShadow: "rgba(2, 136, 209, 0.15) 0px 4px 16px",
-// //               }}
-// //             >
-// //               <Typography variant="body1" fontWeight={600}>
-// //                 ✅ Solicitud generada: {solicitudCargada.requestNumber}
-// //               </Typography>
-// //               <Typography variant="body2">
-// //                 Se han cargado {solicitudCargada.totalItemsCount} items con
-// //                 consumo del período. Total estimado: S/. {totalEstimado.toFixed(2)}
-// //               </Typography>
-// //             </Alert>
-// //           </Fade>
-// //         )}
-
-// //         {errorMessage && (
-// //           <Alert
-// //             severity="error"
-// //             sx={{ mb: 3, borderRadius: 2 }}
-// //             onClose={() => setErrorMessage("")}
-// //           >
-// //             {errorMessage}
-// //           </Alert>
-// //         )}
-
-// //         {/* Selector de Entidad Destino */}
-// //         {/* <Box sx={{ mb: 3 }}>
-// //           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-// //             <BusinessOutlined sx={{ color: "primary.main", fontSize: 24 }} />
-// //             <Typography variant="subtitle1" fontWeight={600}>
-// //               Entidad de destino
-// //             </Typography>
-// //           </Box>
-// //           <ToggleButtonGroup
-// //             value={entidadDestino}
-// //             exclusive
-// //             onChange={handleEntidadChange}
-// //             aria-label="Entidad destino"
-// //             fullWidth
-// //             sx={{
-// //               gap: 2,
-// //               "& .MuiToggleButton-root": {
-// //                 borderRadius: 2,
-// //                 border: "2px solid",
-// //                 textTransform: "none",
-// //                 py: 1.5,
-// //                 transition: "all 0.3s ease",
-// //                 "&:hover": {
-// //                   transform: "translateY(-2px)",
-// //                 },
-// //               },
-// //             }}
-// //           >
-// //             <ToggleButton
-// //               value="CLARO"
-// //               sx={{
-// //                 borderColor: entidadConfig.CLARO.color,
-// //                 "&.Mui-selected": {
-// //                   bgcolor: entidadConfig.CLARO.bgColor,
-// //                   borderColor: entidadConfig.CLARO.color,
-// //                   color: entidadConfig.CLARO.color,
-// //                   fontWeight: 700,
-// //                   "&:hover": {
-// //                     bgcolor: entidadConfig.CLARO.bgColor,
-// //                   },
-// //                 },
-// //               }}
-// //             >
-// //               <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-// //                 <Typography variant="body2" fontWeight={600}>
-// //                   📱 CLARO
-// //                 </Typography>
-// //                 <Typography variant="caption" color="text.secondary">
-// //                   Exporta archivos separados
-// //                 </Typography>
-// //               </Box>
-// //             </ToggleButton>
-
-// //             <ToggleButton
-// //               value="LEMCORP"
-// //               sx={{
-// //                 borderColor: entidadConfig.LEMCORP.color,
-// //                 "&.Mui-selected": {
-// //                   bgcolor: entidadConfig.LEMCORP.bgColor,
-// //                   borderColor: entidadConfig.LEMCORP.color,
-// //                   color: entidadConfig.LEMCORP.color,
-// //                   fontWeight: 700,
-// //                   "&:hover": {
-// //                     bgcolor: entidadConfig.LEMCORP.bgColor,
-// //                   },
-// //                 },
-// //               }}
-// //             >
-// //               <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-// //                 <Typography variant="body2" fontWeight={600}>
-// //                   🏢 LEMCORP
-// //                 </Typography>
-// //                 <Typography variant="caption" color="text.secondary">
-// //                   Exporta archivo consolidado
-// //                 </Typography>
-// //               </Box>
-// //             </ToggleButton>
-// //           </ToggleButtonGroup>
-// //         </Box> */}
-
-// //         <Divider sx={{ my: 3 }} />
-
-// //         {/* Filtros de Período */}
-// //         <Box sx={{ mb: 3 }}>
-// //           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-// //             <FilterListOutlined sx={{ color: "info.main", fontSize: 24 }} />
-// //             <Typography variant="subtitle1" fontWeight={600}>
-// //               Período de análisis de consumo
-// //             </Typography>
-// //           </Box>
-
-// //           <Box
-// //             sx={{
-// //               display: "flex",
-// //               gap: 2,
-// //               flexWrap: "wrap",
-// //               alignItems: "flex-end",
-// //             }}
-// //           >
-// //             <Box sx={{ flex: "1 1 200px" }}>
-// //               <Typography
-// //                 variant="body2"
-// //                 color="text.secondary"
-// //                 fontWeight={600}
-// //                 mb={1}
-// //               >
-// //                 Fecha Inicio *
-// //               </Typography>
-// //               <TextField
-// //                 type="date"
-// //                 fullWidth
-// //                 value={fechaSolicitud}
-// //                 onChange={(e) => setFechaSolicitud(e.target.value)}
-// //                 size="small"
-// //                 InputLabelProps={{ shrink: true }}
-// //                 required
-// //               />
-// //             </Box>
-
-// //             <Box sx={{ flex: "1 1 200px" }}>
-// //               <Typography
-// //                 variant="body2"
-// //                 color="text.secondary"
-// //                 fontWeight={600}
-// //                 mb={1}
-// //               >
-// //                 Fecha Fin *
-// //               </Typography>
-// //               <TextField
-// //                 type="date"
-// //                 fullWidth
-// //                 value={fechaSolicitudFin}
-// //                 onChange={(e) => setFechaSolicitudFin(e.target.value)}
-// //                 size="small"
-// //                 InputLabelProps={{ shrink: true }}
-// //                 required
-// //               />
-// //             </Box>
-
-// //             <Box sx={{ flex: "1 1 200px" }}>
-// //               <Typography
-// //                 variant="body2"
-// //                 color="text.secondary"
-// //                 fontWeight={600}
-// //                 mb={1}
-// //               >
-// //                 Fecha Entrega Solicitada
-// //               </Typography>
-// //               <TextField
-// //                 type="date"
-// //                 fullWidth
-// //                 value={fechaEntregaSolicitada}
-// //                 onChange={(e) => setFechaEntregaSolicitada(e.target.value)}
-// //                 size="small"
-// //                 InputLabelProps={{ shrink: true }}
-// //               />
-// //             </Box>
-
-// //             <Box sx={{ flex: "1 1 250px" }}>
-// //               <Typography
-// //                 variant="body2"
-// //                 color="text.secondary"
-// //                 fontWeight={600}
-// //                 mb={1}
-// //               >
-// //                 Región
-// //               </Typography>
-// //               <Autocomplete
-// //                 value={region}
-// //                 onChange={(_, newValue) => setRegion(newValue)}
-// //                 options={regionesDisponibles}
-// //                 renderInput={(params) => (
-// //                   <TextField
-// //                     {...params}
-// //                     placeholder="Selecciona región"
-// //                     size="small"
-// //                   />
-// //                 )}
-// //                 size="small"
-// //               />
-// //             </Box>
-
-// //             <ButtonBase
-// //               onClick={handleGenerarSolicitud}
-// //               startIcon={
-// //                 loading ? (
-// //                   <CircularProgress size={20} color="inherit" />
-// //                 ) : (
-// //                   <SearchOutlined />
-// //                 )
-// //               }
-// //               label={loading ? "Generando..." : "Generar Solicitud"}
-// //               disabled={loading || !fechaSolicitud || !fechaSolicitudFin}
-// //             />
-// //           </Box>
-// //         </Box>
-
-// //         {/* Campo de notas */}
-// //         <Box sx={{ mb: 3 }}>
-// //           <Typography
-// //             variant="body2"
-// //             color="text.secondary"
-// //             fontWeight={600}
-// //             mb={1}
-// //           >
-// //             Notas adicionales
-// //           </Typography>
-// //           <TextField
-// //             fullWidth
-// //             multiline
-// //             rows={2}
-// //             value={notas}
-// //             onChange={(e) => setNotas(e.target.value)}
-// //             placeholder="Agrega notas o justificación para esta solicitud..."
-// //             size="small"
-// //           />
-// //         </Box>
-
-// //         {solicitudCargada && (
-// //           <>
-// //             <Divider sx={{ my: 3 }} />
-
-// //             {/* Información de la solicitud generada */}
-// //             <Box
-// //               sx={{
-// //                 mb: 3,
-// //                 p: 2,
-// //                 bgcolor: "primary.lighter",
-// //                 borderRadius: 2,
-// //                 border: "2px solid",
-// //                 borderColor: "primary.main",
-// //               }}
-// //             >
-// //               <Typography variant="subtitle1" fontWeight={700} mb={1}>
-// //                 📋 Solicitud: {solicitudCargada.requestNumber}
-// //               </Typography>
-// //               <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-// //                 <Typography variant="body2">
-// //                   <strong>Estado:</strong> {solicitudCargada.status}
-// //                 </Typography>
-// //                 <Typography variant="body2">
-// //                   <strong>Total Items:</strong>{" "}
-// //                   {solicitudCargada.totalItemsCount}
-// //                 </Typography>
-// //                 <Typography variant="body2">
-// //                   <strong>Total Estimado:</strong> S/.{" "}
-// //                   {totalEstimado.toFixed(2)}
-// //                 </Typography>
-// //               </Box>
-// //             </Box>
-
-// //             {/* SECCIÓN MATERIALES */}
-// //             {materialesAPI.length > 0 && (
-// //               <Box sx={{ mb: 4 }}>
-// //                 <Box
-// //                   sx={{
-// //                     display: "flex",
-// //                     alignItems: "center",
-// //                     justifyContent: "space-between",
-// //                     mb: 2,
-// //                   }}
-// //                 >
-// //                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-// //                     <Typography
-// //                       variant="body2"
-// //                       fontWeight={600}
-// //                       sx={{ color: categoriaConfig.MATERIAL.color }}
-// //                     >
-// //                       {categoriaConfig.MATERIAL.icon} Materiales
-// //                     </Typography>
-// //                     <Chip
-// //                       label={`${materialesAPI.length} items`}
-// //                       size="small"
-// //                       sx={{
-// //                         bgcolor: categoriaConfig.MATERIAL.color,
-// //                         color: "white",
-// //                         fontWeight: 600,
-// //                       }}
-// //                     />
-// //                   </Box>
-// //                   <ButtonBase
-// //                     variant="contained"
-// //                     size="small"
-// //                     label="Exportar materiales"
-// //                     startIcon={<FileDownloadOutlined />}
-// //                     onClick={exportarMateriales}
-// //                     sx={{
-// //                       bgcolor: categoriaConfig.MATERIAL.color,
-// //                       "&:hover": {
-// //                         bgcolor: categoriaConfig.MATERIAL.color,
-// //                         filter: "brightness(0.9)",
-// //                       },
-// //                       textTransform: "none",
-// //                     }}
-// //                   />
-// //                 </Box>
-
-// //                 <TableContainer
-// //                   component={Paper}
-// //                   sx={{
-// //                     maxHeight: 400,
-// //                     border: "2px solid",
-// //                     borderColor: `${categoriaConfig.MATERIAL.color}30`,
-// //                   }}
-// //                 >
-// //                   <Table stickyHeader size="small">
-// //                     <TableHead>
-// //                       <TableRow>
-// //                         <TableCell
-// //                           sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-// //                         >
-// //                           Código
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-// //                         >
-// //                           Descripción
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             textAlign: "center",
-// //                           }}
-// //                         >
-// //                           Consumo Período
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             width: 150,
-// //                           }}
-// //                         >
-// //                           Cantidad Solicitada
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             textAlign: "right",
-// //                           }}
-// //                         >
-// //                           Precio Unit.
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             textAlign: "right",
-// //                           }}
-// //                         >
-// //                           Total
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             textAlign: "center",
-// //                           }}
-// //                         >
-// //                           Urgente
-// //                         </TableCell>
-// //                       </TableRow>
-// //                     </TableHead>
-// //                     <TableBody>
-// //                       {materialesAPI.map((material) => (
-// //                         <TableRow
-// //                           key={material.id}
-// //                           sx={{
-// //                             "&:hover": { bgcolor: "action.hover" },
-// //                             bgcolor: material.isUrgent
-// //                               ? "#fff3e0"
-// //                               : "inherit",
-// //                           }}
-// //                         >
-// //                           <TableCell>
-// //                             <Typography variant="body2" fontWeight={600}>
-// //                               {material.itemCode}
-// //                             </Typography>
-// //                           </TableCell>
-// //                           <TableCell>
-// //                             <Typography variant="body2">
-// //                               {material.itemName}
-// //                             </Typography>
-// //                           </TableCell>
-// //                           <TableCell align="center">
-// //                             <Chip
-// //                               label={material.quantityUsedInPeriod}
-// //                               size="small"
-// //                               color="info"
-// //                               variant="outlined"
-// //                             />
-// //                           </TableCell>
-// //                           <TableCell>
-// //                             <TextField
-// //                               type="number"
-// //                               size="small"
-// //                               value={material.requestedQuantity}
-// //                               onChange={(e) =>
-// //                                 actualizarCantidadMaterial(
-// //                                   material.id,
-// //                                   e.target.value
-// //                                 )
-// //                               }
-// //                               inputProps={{ min: 0 }}
-// //                               sx={{ width: "100%" }}
-// //                             />
-// //                           </TableCell>
-// //                           <TableCell align="right">
-// //                             <Typography variant="body2">
-// //                               S/. {material.unitPrice.toFixed(2)}
-// //                             </Typography>
-// //                           </TableCell>
-// //                           <TableCell align="right">
-// //                             <Typography variant="body2" fontWeight={600}>
-// //                               S/. {material.totalPrice.toFixed(2)}
-// //                             </Typography>
-// //                           </TableCell>
-// //                           <TableCell align="center">
-// //                             <Checkbox
-// //                               checked={material.isUrgent}
-// //                               onChange={() =>
-// //                                 toggleUrgente(material.id, "MATERIAL")
-// //                               }
-// //                               color="warning"
-// //                             />
-// //                           </TableCell>
-// //                         </TableRow>
-// //                       ))}
-// //                     </TableBody>
-// //                   </Table>
-// //                 </TableContainer>
-// //               </Box>
-// //             )}
-
-// //             {/* SECCIÓN HERRAMIENTAS */}
-// //             {herramientasAPI.length > 0 && (
-// //               <Box sx={{ mb: 4 }}>
-// //                 <Box
-// //                   sx={{
-// //                     display: "flex",
-// //                     alignItems: "center",
-// //                     justifyContent: "space-between",
-// //                     mb: 2,
-// //                   }}
-// //                 >
-// //                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-// //                     <Typography
-// //                       variant="body2"
-// //                       fontWeight={600}
-// //                       sx={{ color: categoriaConfig.TOOL.color }}
-// //                     >
-// //                       {categoriaConfig.TOOL.icon} Herramientas
-// //                     </Typography>
-// //                     <Chip
-// //                       label={`${herramientasAPI.length} items`}
-// //                       size="small"
-// //                       sx={{
-// //                         bgcolor: categoriaConfig.TOOL.color,
-// //                         color: "white",
-// //                         fontWeight: 600,
-// //                       }}
-// //                     />
-// //                   </Box>
-// //                   <ButtonBase
-// //                     variant="contained"
-// //                     size="small"
-// //                     label="Exportar Herramientas"
-// //                     startIcon={<FileDownloadOutlined />}
-// //                     onClick={exportarHerramientas}
-// //                     sx={{
-// //                       bgcolor: categoriaConfig.TOOL.color,
-// //                       "&:hover": {
-// //                         bgcolor: categoriaConfig.TOOL.color,
-// //                         filter: "brightness(0.9)",
-// //                       },
-// //                       textTransform: "none",
-// //                     }}
-// //                   />
-// //                 </Box>
-
-// //                 <TableContainer
-// //                   component={Paper}
-// //                   sx={{
-// //                     maxHeight: 400,
-// //                     border: "2px solid",
-// //                     borderColor: `${categoriaConfig.TOOL.color}30`,
-// //                   }}
-// //                 >
-// //                   <Table stickyHeader size="small">
-// //                     <TableHead>
-// //                       <TableRow>
-// //                         <TableCell
-// //                           sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-// //                         >
-// //                           Código
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-// //                         >
-// //                           Descripción
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             textAlign: "center",
-// //                           }}
-// //                         >
-// //                           Consumo Período
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             width: 150,
-// //                           }}
-// //                         >
-// //                           Cantidad Solicitada
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             textAlign: "right",
-// //                           }}
-// //                         >
-// //                           Precio Unit.
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             textAlign: "right",
-// //                           }}
-// //                         >
-// //                           Total
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             textAlign: "center",
-// //                           }}
-// //                         >
-// //                           Urgente
-// //                         </TableCell>
-// //                       </TableRow>
-// //                     </TableHead>
-// //                     <TableBody>
-// //                       {herramientasAPI.map((herramienta) => (
-// //                         <TableRow
-// //                           key={herramienta.id}
-// //                           sx={{
-// //                             "&:hover": { bgcolor: "action.hover" },
-// //                             bgcolor: herramienta.isUrgent
-// //                               ? "#fff3e0"
-// //                               : "inherit",
-// //                           }}
-// //                         >
-// //                           <TableCell>
-// //                             <Typography variant="body2" fontWeight={600}>
-// //                               {herramienta.itemCode}
-// //                             </Typography>
-// //                           </TableCell>
-// //                           <TableCell>
-// //                             <Typography variant="body2">
-// //                               {herramienta.itemName}
-// //                             </Typography>
-// //                           </TableCell>
-// //                           <TableCell align="center">
-// //                             <Chip
-// //                               label={herramienta.quantityUsedInPeriod}
-// //                               size="small"
-// //                               color="info"
-// //                               variant="outlined"
-// //                             />
-// //                           </TableCell>
-// //                           <TableCell>
-// //                             <TextField
-// //                               type="number"
-// //                               size="small"
-// //                               value={herramienta.requestedQuantity}
-// //                               onChange={(e) =>
-// //                                 actualizarCantidadHerramienta(
-// //                                   herramienta.id,
-// //                                   e.target.value
-// //                                 )
-// //                               }
-// //                               inputProps={{ min: 0 }}
-// //                               sx={{ width: "100%" }}
-// //                             />
-// //                           </TableCell>
-// //                           <TableCell align="right">
-// //                             <Typography variant="body2">
-// //                               S/. {herramienta.unitPrice.toFixed(2)}
-// //                             </Typography>
-// //                           </TableCell>
-// //                           <TableCell align="right">
-// //                             <Typography variant="body2" fontWeight={600}>
-// //                               S/. {herramienta.totalPrice.toFixed(2)}
-// //                             </Typography>
-// //                           </TableCell>
-// //                           <TableCell align="center">
-// //                             <Checkbox
-// //                               checked={herramienta.isUrgent}
-// //                               onChange={() =>
-// //                                 toggleUrgente(herramienta.id, "TOOL")
-// //                               }
-// //                               color="warning"
-// //                             />
-// //                           </TableCell>
-// //                         </TableRow>
-// //                       ))}
-// //                     </TableBody>
-// //                   </Table>
-// //                 </TableContainer>
-// //               </Box>
-// //             )}
-
-// //             {/* SECCIÓN EQUIPOS */}
-// //             {equiposAPI.length > 0 && (
-// //               <Box sx={{ mb: 4 }}>
-// //                 <Box
-// //                   sx={{
-// //                     display: "flex",
-// //                     alignItems: "center",
-// //                     justifyContent: "space-between",
-// //                     mb: 2,
-// //                   }}
-// //                 >
-// //                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-// //                     <Typography
-// //                       variant="body2"
-// //                       fontWeight={600}
-// //                       sx={{ color: categoriaConfig.EQUIPMENT.color }}
-// //                     >
-// //                       {categoriaConfig.EQUIPMENT.icon} Equipos
-// //                     </Typography>
-// //                     <Chip
-// //                       label={`${equiposAPI.length} items`}
-// //                       size="small"
-// //                       sx={{
-// //                         bgcolor: categoriaConfig.EQUIPMENT.color,
-// //                         color: "white",
-// //                         fontWeight: 600,
-// //                       }}
-// //                     />
-// //                   </Box>
-// //                   <ButtonBase
-// //                     variant="contained"
-// //                     label="Exportar Equipos"
-// //                     size="small"
-// //                     startIcon={<FileDownloadOutlined />}
-// //                     onClick={exportarEquipos}
-// //                     sx={{
-// //                       bgcolor: categoriaConfig.EQUIPMENT.color,
-// //                       "&:hover": {
-// //                         bgcolor: categoriaConfig.EQUIPMENT.color,
-// //                         filter: "brightness(0.9)",
-// //                       },
-// //                       textTransform: "none",
-// //                     }}
-// //                   />
-// //                 </Box>
-
-// //                 <TableContainer
-// //                   component={Paper}
-// //                   sx={{
-// //                     maxHeight: 400,
-// //                     border: "2px solid",
-// //                     borderColor: `${categoriaConfig.EQUIPMENT.color}30`,
-// //                   }}
-// //                 >
-// //                   <Table stickyHeader size="small">
-// //                     <TableHead>
-// //                       <TableRow>
-// //                         <TableCell
-// //                           sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-// //                         >
-// //                           Código
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-// //                         >
-// //                           Descripción
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             textAlign: "center",
-// //                           }}
-// //                         >
-// //                           Consumo Período
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             width: 150,
-// //                           }}
-// //                         >
-// //                           Cantidad Solicitada
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             textAlign: "right",
-// //                           }}
-// //                         >
-// //                           Precio Unit.
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             textAlign: "right",
-// //                           }}
-// //                         >
-// //                           Total
-// //                         </TableCell>
-// //                         <TableCell
-// //                           sx={{
-// //                             fontWeight: 700,
-// //                             bgcolor: "background.paper",
-// //                             textAlign: "center",
-// //                           }}
-// //                         >
-// //                           Urgente
-// //                         </TableCell>
-// //                       </TableRow>
-// //                     </TableHead>
-// //                     <TableBody>
-// //                       {equiposAPI.map((equipo) => (
-// //                         <TableRow
-// //                           key={equipo.id}
-// //                           sx={{
-// //                             "&:hover": { bgcolor: "action.hover" },
-// //                             bgcolor: equipo.isUrgent ? "#fff3e0" : "inherit",
-// //                           }}
-// //                         >
-// //                           <TableCell>
-// //                             <Typography variant="body2" fontWeight={600}>
-// //                               {equipo.itemCode}
-// //                             </Typography>
-// //                           </TableCell>
-// //                           <TableCell>
-// //                             <Typography variant="body2">
-// //                               {equipo.itemName}
-// //                             </Typography>
-// //                             {equipo.specifications && (
-// //                               <Typography
-// //                                 variant="caption"
-// //                                 color="text.secondary"
-// //                                 display="block"
-// //                               >
-// //                                 {equipo.specifications}
-// //                               </Typography>
-// //                             )}
-// //                           </TableCell>
-// //                           <TableCell align="center">
-// //                             <Chip
-// //                               label={equipo.quantityUsedInPeriod}
-// //                               size="small"
-// //                               color="info"
-// //                               variant="outlined"
-// //                             />
-// //                           </TableCell>
-// //                           <TableCell>
-// //                             <TextField
-// //                               type="number"
-// //                               size="small"
-// //                               value={equipo.requestedQuantity}
-// //                               onChange={(e) =>
-// //                                 actualizarCantidadEquipo(
-// //                                   equipo.id,
-// //                                   e.target.value
-// //                                 )
-// //                               }
-// //                               inputProps={{ min: 0 }}
-// //                               sx={{ width: "100%" }}
-// //                             />
-// //                           </TableCell>
-// //                           <TableCell align="right">
-// //                             <Typography variant="body2">
-// //                               S/. {equipo.unitPrice.toFixed(2)}
-// //                             </Typography>
-// //                           </TableCell>
-// //                           <TableCell align="right">
-// //                             <Typography variant="body2" fontWeight={600}>
-// //                               S/. {equipo.totalPrice.toFixed(2)}
-// //                             </Typography>
-// //                           </TableCell>
-// //                           <TableCell align="center">
-// //                             <Checkbox
-// //                               checked={equipo.isUrgent}
-// //                               onChange={() =>
-// //                                 toggleUrgente(equipo.id, "EQUIPMENT")
-// //                               }
-// //                               color="warning"
-// //                             />
-// //                           </TableCell>
-// //                         </TableRow>
-// //                       ))}
-// //                     </TableBody>
-// //                   </Table>
-// //                 </TableContainer>
-// //               </Box>
-// //             )}
-
-// //             <Divider sx={{ my: 3 }} />
-
-// //             {/* Botones de Acción */}
-// //             <Box
-// //               sx={{
-// //                 display: "flex",
-// //                 gap: 2,
-// //                 justifyContent: "flex-end",
-// //                 flexWrap: "wrap",
-// //               }}
-// //             >
-// //               <ButtonBase
-// //                 variant="outlined"
-// //                 label="Recargar Datos"
-// //                 startIcon={<RefreshOutlined />}
-// //                 onClick={handleGenerarSolicitud}
-// //                 disabled={loading}
-// //                 sx={{
-// //                   textTransform: "none",
-// //                   px: 4,
-// //                   py: 1.2,
-// //                 }}
-// //               />
-
-// //               <ButtonBase
-// //                 variant="outlined"
-// //                 label="Guardar Borrador"
-// //                 startIcon={<SaveOutlined />}
-// //                 onClick={handleGuardarBorrador}
-// //                 sx={{
-// //                   textTransform: "none",
-// //                   px: 4,
-// //                   py: 1.2,
-// //                 }}
-// //               />
-
-// //               <ButtonBase
-// //                 label="Confirmar y Enviar Solicitud"
-// //                 onClick={() => {
-// //                   // TODO: Implementar confirmación final
-// //                   console.log("Enviando solicitud final...");
-// //                 }}
-// //               />
-// //             </Box>
-// //           </>
-// //         )}
-// //       </Card>
-// //     </Box>
-// //   );
-// // }
-
-
-// "use client";
-
-// import { useState } from "react";
-// import {
-//   Box,
-//   Card,
-//   Typography,
-//   TextField,
-//   Divider,
-//   Autocomplete,
-//   Alert,
-//   Fade,
-//   Chip,
-//   Checkbox,
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableContainer,
-//   TableHead,
-//   TableRow,
-//   Paper,
-//   CircularProgress,
-//   Dialog,
-//   DialogTitle,
-//   DialogContent,
-//   DialogActions,
-// } from "@mui/material";
-// import {
-//   AddCircleOutline,
-//   SaveOutlined,
-//   ListAltOutlined,
-//   FileDownloadOutlined,
-//   SearchOutlined,
-//   FilterListOutlined,
-//   RefreshOutlined,
-//   SendOutlined,
-// } from "@mui/icons-material";
-// import { TitleCard } from "@/src/components/base/TitleCard";
-// import { SectionHeader } from "@/src/components/base/SectionHeader";
-// import * as XLSX from "xlsx";
-// import ButtonBase from "@/src/components/base/ButtonBase";
-// import { API_URL } from "@/src/lib/config";
-
-// type EntidadDestino = "CLARO" | "LEMCORP";
-// type ProductType = "EQUIPMENT" | "MATERIAL" | "TOOL";
-
-// interface SupplyRequestItem {
-//   id: string;
-//   itemId: string;
-//   itemCode: string;
-//   itemName: string;
-//   itemDescription: string;
-//   productType: ProductType;
-//   quantityUsedInPeriod: number;
-//   requestedQuantity: number;
-//   approvedQuantity: number | null;
-//   deliveredQuantity: number;
-//   pendingQuantity: number;
-//   unitPrice: number;
-//   totalPrice: number;
-//   priority: number;
-//   isUrgent: boolean;
-//   isFullyDelivered: boolean;
-//   isPartiallyDelivered: boolean;
-//   deliveryPercentage: number;
-//   specifications?: string;
-//   uom?: string;
-// }
-
-// interface SupplyRequestDto {
-//   id: string;
-//   requestNumber: string;
-//   status: string;
-//   periodStartDate: string;
-//   periodEndDate: string;
-//   hubId: string;
-//   hubName: string | null;
-//   items: SupplyRequestItem[];
-//   totalItemsCount: number;
-//   totalQuantity: number;
-//   totalEstimatedValue: number;
-//   requestedDeliveryDate: string;
-//   actualDeliveryDate: string | null;
-//   notes: string;
-//   justification: string | null;
-//   createdBy: string;
-//   createdByName: string | null;
-//   createdAt: string;
-//   approvedBy: string | null;
-//   approvedByName: string | null;
-//   approvedAt: string | null;
-//   deliveredBy: string | null;
-//   deliveredByName: string | null;
-//   deliveredAt: string | null;
-// }
-
-// // Datos de ejemplo
-// const regionesDisponibles = ["Lima", "Arequipa", "Cusco", "Trujillo", "Piura"];
-
-// const categoriaConfig = {
-//   MATERIAL: {
-//     label: "Material",
-//     color: "#ed6c02",
-//     icon: "📦",
-//   },
-//   TOOL: {
-//     label: "Herramienta",
-//     color: "#1976d2",
-//     icon: "🔧",
-//   },
-//   EQUIPMENT: {
-//     label: "Equipo",
-//     color: "#2e7d32",
-//     icon: "⚙️",
-//   },
-// };
-
-// const entidadConfig = {
-//   CLARO: {
-//     label: "CLARO",
-//     color: "#d32f2f",
-//     bgColor: "#ffebee",
-//   },
-//   LEMCORP: {
-//     label: "LEMCORP",
-//     color: "#1976d2",
-//     bgColor: "#e3f2fd",
-//   },
-// };
-
-// export default function SolicitudAbastecimiento() {
-//   const [entidadDestino, setEntidadDestino] = useState<EntidadDestino>("CLARO");
-//   const [fechaSolicitud, setFechaSolicitud] = useState("");
-//   const [fechaSolicitudFin, setFechaSolicitudFin] = useState("");
-//   const [fechaEntregaSolicitada, setFechaEntregaSolicitada] = useState("");
-//   const [region, setRegion] = useState<string | null>(null);
-//   const [notas, setNotas] = useState("");
-
-//   // Estado principal para almacenar toda la respuesta del API
-//   const [requestDto, setRequestDto] = useState<SupplyRequestDto | null>(null);
-
-//   // Estados para los items separados por tipo (vistas derivadas del requestDto)
-//   const [materialesAPI, setMaterialesAPI] = useState<SupplyRequestItem[]>([]);
-//   const [herramientasAPI, setHerramientasAPI] = useState<SupplyRequestItem[]>(
-//     []
-//   );
-//   const [equiposAPI, setEquiposAPI] = useState<SupplyRequestItem[]>([]);
-
-//   // Estados de UI
-//   const [loading, setLoading] = useState(false);
-//   const [submitting, setSubmitting] = useState(false);
-//   const [showSuccess, setShowSuccess] = useState(false);
-//   const [showFilterInfo, setShowFilterInfo] = useState(false);
-//   const [errorMessage, setErrorMessage] = useState("");
-//   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-
-//   // TODO: Reemplazar con los valores reales de tu sistema
-//   const TENANT_ID = "758c176f-bdfd-4490-8c7a-c450333f0c60";
-//   const HUB_ID = "02dff28b-d520-41ff-b2e1-0a2af54b2e15";
-//   const USER_ID = "758c176f-bdfd-4490-8c7a-c450333f0c60";
-
-//   const handleEntidadChange = (
-//     _event: React.MouseEvent<HTMLElement>,
-//     newEntidad: EntidadDestino | null
-//   ) => {
-//     if (newEntidad !== null) {
-//       setEntidadDestino(newEntidad);
-//       limpiarDatos();
-//     }
-//   };
-
-//   const limpiarDatos = () => {
-//     setMaterialesAPI([]);
-//     setHerramientasAPI([]);
-//     setEquiposAPI([]);
-//     setRequestDto(null);
-//     setErrorMessage("");
-//   };
-
-//   // Función para actualizar el requestDto cuando cambian los items
-//   const actualizarRequestDto = (nuevosItems: SupplyRequestItem[]) => {
-//     if (!requestDto) return;
-
-//     const totalQuantity = nuevosItems.reduce(
-//       (sum, item) => sum + item.requestedQuantity,
-//       0
-//     );
-//     const totalEstimatedValue = nuevosItems.reduce(
-//       (sum, item) => sum + item.totalPrice,
-//       0
-//     );
-
-//     setRequestDto({
-//       ...requestDto,
-//       items: nuevosItems,
-//       totalQuantity,
-//       totalEstimatedValue,
-//       totalItemsCount: nuevosItems.length,
-//     });
-//   };
-
-//   // Handler para generar/obtener solicitud desde el período
-//   const handleGenerarSolicitud = async () => {
-//     if (!fechaSolicitud || !fechaSolicitudFin) {
-//       setErrorMessage("Debes seleccionar fecha de inicio y fin del período");
-//       return;
-//     }
-
-//     setLoading(true);
-//     setErrorMessage("");
-
-//     try {
-//       const response = await fetch(`${API_URL}/api/supply-requests/generate`, {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({
-//           tenantId: TENANT_ID,
-//           hubId: HUB_ID,
-//           periodStartDate: fechaSolicitud,
-//           periodEndDate: fechaSolicitudFin,
-//           requestedBy: USER_ID,
-//           notes:
-//             notas ||
-//             `Solicitud generada para período ${fechaSolicitud} - ${fechaSolicitudFin}`,
-//           requestedDeliveryDate: fechaEntregaSolicitada || null,
-//         }),
-//       });
-
-//       if (!response.ok) {
-//         throw new Error("Error al generar la solicitud de abastecimiento");
-//       }
-
-//       const data: SupplyRequestDto = await response.json();
-
-//       // Guardar la solicitud completa en requestDto
-//       setRequestDto(data);
-
-//       // Separar items por tipo de producto
-//       const materiales = data.items.filter(
-//         (item) => item.productType === "MATERIAL"
-//       );
-//       const herramientas = data.items.filter(
-//         (item) => item.productType === "TOOL"
-//       );
-//       const equipos = data.items.filter(
-//         (item) => item.productType === "EQUIPMENT"
-//       );
-
-//       setMaterialesAPI(materiales);
-//       setHerramientasAPI(herramientas);
-//       setEquiposAPI(equipos);
-
-//       setShowFilterInfo(true);
-//       setTimeout(() => setShowFilterInfo(false), 5000);
-//     } catch (error) {
-//       console.error("Error al generar solicitud:", error);
-//       setErrorMessage(
-//         error instanceof Error
-//           ? error.message
-//           : "Error al cargar los datos del período"
-//       );
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   // Actualizar cantidad solicitada y sincronizar con requestDto
-//   const actualizarCantidadMaterial = (itemId: string, cantidad: string) => {
-//     const cantidadNum = parseInt(cantidad) || 0;
-
-//     setMaterialesAPI((prev) => {
-//       const updated = prev.map((item) =>
-//         item.id === itemId
-//           ? {
-//               ...item,
-//               requestedQuantity: cantidadNum,
-//               totalPrice: cantidadNum * item.unitPrice,
-//               pendingQuantity: cantidadNum - item.deliveredQuantity,
-//             }
-//           : item
-//       );
-
-//       // Sincronizar con requestDto
-//       if (requestDto) {
-//         const todosLosItems = [
-//           ...updated,
-//           ...herramientasAPI,
-//           ...equiposAPI,
-//         ];
-//         actualizarRequestDto(todosLosItems);
-//       }
-
-//       return updated;
-//     });
-//   };
-
-//   const actualizarCantidadHerramienta = (itemId: string, cantidad: string) => {
-//     const cantidadNum = parseInt(cantidad) || 0;
-
-//     setHerramientasAPI((prev) => {
-//       const updated = prev.map((item) =>
-//         item.id === itemId
-//           ? {
-//               ...item,
-//               requestedQuantity: cantidadNum,
-//               totalPrice: cantidadNum * item.unitPrice,
-//               pendingQuantity: cantidadNum - item.deliveredQuantity,
-//             }
-//           : item
-//       );
-
-//       // Sincronizar con requestDto
-//       if (requestDto) {
-//         const todosLosItems = [...materialesAPI, ...updated, ...equiposAPI];
-//         actualizarRequestDto(todosLosItems);
-//       }
-
-//       return updated;
-//     });
-//   };
-
-//   const actualizarCantidadEquipo = (itemId: string, cantidad: string) => {
-//     const cantidadNum = parseInt(cantidad) || 0;
-
-//     setEquiposAPI((prev) => {
-//       const updated = prev.map((item) =>
-//         item.id === itemId
-//           ? {
-//               ...item,
-//               requestedQuantity: cantidadNum,
-//               totalPrice: cantidadNum * item.unitPrice,
-//               pendingQuantity: cantidadNum - item.deliveredQuantity,
-//             }
-//           : item
-//       );
-
-//       // Sincronizar con requestDto
-//       if (requestDto) {
-//         const todosLosItems = [
-//           ...materialesAPI,
-//           ...herramientasAPI,
-//           ...updated,
-//         ];
-//         actualizarRequestDto(todosLosItems);
-//       }
-
-//       return updated;
-//     });
-//   };
-
-//   // Marcar item como urgente y sincronizar
-//   const toggleUrgente = (
-//     itemId: string,
-//     tipo: "MATERIAL" | "TOOL" | "EQUIPMENT"
-//   ) => {
-//     const setter =
-//       tipo === "MATERIAL"
-//         ? setMaterialesAPI
-//         : tipo === "TOOL"
-//         ? setHerramientasAPI
-//         : setEquiposAPI;
-
-//     setter((prev) => {
-//       const updated = prev.map((item) =>
-//         item.id === itemId ? { ...item, isUrgent: !item.isUrgent } : item
-//       );
-
-//       // Sincronizar con requestDto
-//       if (requestDto) {
-//         const todosLosItems =
-//           tipo === "MATERIAL"
-//             ? [...updated, ...herramientasAPI, ...equiposAPI]
-//             : tipo === "TOOL"
-//             ? [...materialesAPI, ...updated, ...equiposAPI]
-//             : [...materialesAPI, ...herramientasAPI, ...updated];
-
-//         actualizarRequestDto(todosLosItems);
-//       }
-
-//       return updated;
-//     });
-//   };
-
-//   const handleGuardarBorrador = async () => {
-//     if (!requestDto) {
-//       alert("No hay datos para guardar");
-//       return;
-//     }
-
-//     // TODO: Implementar endpoint para actualizar borrador
-//     console.log("Guardando borrador...", requestDto);
-//     alert("Borrador guardado correctamente");
-//   };
-
-//   // Confirmar y enviar solicitud
-//   const handleConfirmarSolicitud = () => {
-//     if (!requestDto) {
-//       alert("No hay datos para enviar");
-//       return;
-//     }
-
-//     // Validar que haya al menos un item con cantidad > 0
-//     const hasItems = requestDto.items.some(
-//       (item) => item.requestedQuantity > 0
-//     );
-//     if (!hasItems) {
-//       setErrorMessage(
-//         "Debes tener al menos un item con cantidad mayor a 0 para enviar la solicitud"
-//       );
-//       return;
-//     }
-
-//     setConfirmDialogOpen(true);
-//   };
-
-//   const handleEnviarSolicitud = async () => {
-//     if (!requestDto) return;
-
-//     setConfirmDialogOpen(false);
-//     setSubmitting(true);
-//     setErrorMessage("");
-
-//     try {
-//       const response = await fetch(
-//         `${API_URL}/api/supply-requests/${requestDto.id}/submit?tenantId=${TENANT_ID}`,
-//         {
-//           method: "POST",
-//           headers: {
-//             "Content-Type": "application/json",
-//           },
-//           body: JSON.stringify({
-//             submittedBy: USER_ID,
-//           }),
-//         }
-//       );
-
-//       if (!response.ok) {
-//         const errorData = await response.json();
-//         throw new Error(
-//           errorData.message || "Error al enviar la solicitud"
-//         );
-//       }
-
-//       const updatedRequest: SupplyRequestDto = await response.json();
-//       setRequestDto(updatedRequest);
-
-//       setShowSuccess(true);
-//       setTimeout(() => {
-//         setShowSuccess(false);
-//         // Opcional: redirigir a la lista de solicitudes
-//         // router.push('/solicitudes-abastecimiento');
-//       }, 3000);
-//     } catch (error) {
-//       console.error("Error al enviar solicitud:", error);
-//       setErrorMessage(
-//         error instanceof Error
-//           ? error.message
-//           : "Error al enviar la solicitud"
-//       );
-//     } finally {
-//       setSubmitting(false);
-//     }
-//   };
-
-//   // Exportar Excel por categoría individual
-//   const exportarMateriales = () => {
-//     if (materialesAPI.length === 0) {
-//       alert("No hay materiales para exportar");
-//       return;
-//     }
-//     exportarCategoria(
-//       materialesAPI.map((m) => ({
-//         Código: m.itemCode,
-//         Descripción: m.itemName,
-//         "Consumo Período": m.quantityUsedInPeriod,
-//         "Cantidad Solicitada": m.requestedQuantity,
-//         "Unidad de Medida": m.uom || "UND",
-//         "Precio Unitario": m.unitPrice,
-//         "Precio Total": m.totalPrice,
-//         Urgente: m.isUrgent ? "SÍ" : "NO",
-//       })),
-//       "Materiales"
-//     );
-//   };
-
-//   const exportarHerramientas = () => {
-//     if (herramientasAPI.length === 0) {
-//       alert("No hay herramientas para exportar");
-//       return;
-//     }
-//     exportarCategoria(
-//       herramientasAPI.map((h) => ({
-//         Código: h.itemCode,
-//         Descripción: h.itemName,
-//         "Consumo Período": h.quantityUsedInPeriod,
-//         "Cantidad Solicitada": h.requestedQuantity,
-//         "Unidad de Medida": h.uom || "UND",
-//         "Precio Unitario": h.unitPrice,
-//         "Precio Total": h.totalPrice,
-//         Urgente: h.isUrgent ? "SÍ" : "NO",
-//       })),
-//       "Herramientas"
-//     );
-//   };
-
-//   const exportarEquipos = () => {
-//     if (equiposAPI.length === 0) {
-//       alert("No hay equipos para exportar");
-//       return;
-//     }
-//     exportarCategoria(
-//       equiposAPI.map((e) => ({
-//         Código: e.itemCode,
-//         Descripción: e.itemName,
-//         "Consumo Período": e.quantityUsedInPeriod,
-//         "Cantidad Solicitada": e.requestedQuantity,
-//         "Precio Unitario": e.unitPrice,
-//         "Precio Total": e.totalPrice,
-//         Urgente: e.isUrgent ? "SÍ" : "NO",
-//         Especificaciones: e.specifications || "",
-//       })),
-//       "Equipos"
-//     );
-//   };
-
-//   const exportarCategoria = (datos: any[], nombreCategoria: string) => {
-//     const worksheet = XLSX.utils.json_to_sheet(datos);
-//     const workbook = XLSX.utils.book_new();
-//     XLSX.utils.book_append_sheet(workbook, worksheet, nombreCategoria);
-
-//     const fecha = new Date().toISOString().split("T")[0];
-//     XLSX.writeFile(
-//       workbook,
-//       `Solicitud_${nombreCategoria}_${entidadDestino}_${
-//         requestDto?.requestNumber || fecha
-//       }.xlsx`
-//     );
-
-//     setShowSuccess(true);
-//     setTimeout(() => setShowSuccess(false), 3000);
-//   };
-
-//   const totalEstimado = requestDto?.totalEstimatedValue || 0;
-
-//   return (
-//     <Box
-//       sx={{
-//         maxWidth: 1400,
-//         mx: "auto",
-//         p: 3,
-//         display: "flex",
-//         flexDirection: "column",
-//         gap: 3,
-//       }}
-//     >
-//       {/* Título Principal */}
-//       <TitleCard
-//         icon={<ListAltOutlined sx={{ fontSize: 32 }} />}
-//         title="Solicitud de Abastecimiento"
-//         description="Genera solicitudes de materiales, equipos y herramientas basadas en el consumo de períodos anteriores"
-//       />
-
-//       {/* Formulario de Nueva Solicitud */}
-//       <Card
-//         elevation={3}
-//         sx={{
-//           borderRadius: 4,
-//           boxShadow: "rgba(149, 157, 165, 0.2) 0px 8px 24px",
-//           p: 4,
-//         }}
-//       >
-//         <SectionHeader
-//           icon={
-//             <AddCircleOutline sx={{ fontSize: 28, color: "primary.main" }} />
-//           }
-//           title="Nueva Solicitud de Abastecimiento"
-//           subtitle="Completa los datos del período para analizar el consumo"
-//         />
-
-//         {/* Mensajes */}
-//         {showSuccess && (
-//           <Fade in={showSuccess} timeout={600}>
-//             <Alert
-//               severity="success"
-//               sx={{
-//                 mb: 3,
-//                 borderRadius: 2,
-//                 boxShadow: "rgba(46, 125, 50, 0.15) 0px 4px 16px",
-//               }}
-//             >
-//               <Typography variant="body1" fontWeight={600}>
-//                 ✅ Solicitud enviada exitosamente
-//               </Typography>
-//               <Typography variant="body2">
-//                 La solicitud {requestDto?.requestNumber} ha sido enviada para
-//                 aprobación.
-//               </Typography>
-//             </Alert>
-//           </Fade>
-//         )}
-
-//         {showFilterInfo && requestDto && (
-//           <Fade in={showFilterInfo} timeout={600}>
-//             <Alert
-//               severity="success"
-//               sx={{
-//                 mb: 3,
-//                 borderRadius: 2,
-//                 boxShadow: "rgba(2, 136, 209, 0.15) 0px 4px 16px",
-//               }}
-//             >
-//               <Typography variant="body1" fontWeight={600}>
-//                 ✅ Solicitud generada: {requestDto.requestNumber}
-//               </Typography>
-//               <Typography variant="body2">
-//                 Se han cargado {requestDto.totalItemsCount} items con consumo
-//                 del período. Total estimado: S/. {totalEstimado.toFixed(2)}
-//               </Typography>
-//             </Alert>
-//           </Fade>
-//         )}
-
-//         {errorMessage && (
-//           <Alert
-//             severity="error"
-//             sx={{ mb: 3, borderRadius: 2 }}
-//             onClose={() => setErrorMessage("")}
-//           >
-//             {errorMessage}
-//           </Alert>
-//         )}
-
-//         <Divider sx={{ my: 3 }} />
-
-//         {/* Filtros de Período */}
-//         <Box sx={{ mb: 3 }}>
-//           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-//             <FilterListOutlined sx={{ color: "info.main", fontSize: 24 }} />
-//             <Typography variant="subtitle1" fontWeight={600}>
-//               Período de análisis de consumo
-//             </Typography>
-//           </Box>
-
-//           <Box
-//             sx={{
-//               display: "flex",
-//               gap: 2,
-//               flexWrap: "wrap",
-//               alignItems: "flex-end",
-//             }}
-//           >
-//             <Box sx={{ flex: "1 1 200px" }}>
-//               <Typography
-//                 variant="body2"
-//                 color="text.secondary"
-//                 fontWeight={600}
-//                 mb={1}
-//               >
-//                 Fecha Inicio *
-//               </Typography>
-//               <TextField
-//                 type="date"
-//                 fullWidth
-//                 value={fechaSolicitud}
-//                 onChange={(e) => setFechaSolicitud(e.target.value)}
-//                 size="small"
-//                 InputLabelProps={{ shrink: true }}
-//                 required
-//                 disabled={!!requestDto}
-//               />
-//             </Box>
-
-//             <Box sx={{ flex: "1 1 200px" }}>
-//               <Typography
-//                 variant="body2"
-//                 color="text.secondary"
-//                 fontWeight={600}
-//                 mb={1}
-//               >
-//                 Fecha Fin *
-//               </Typography>
-//               <TextField
-//                 type="date"
-//                 fullWidth
-//                 value={fechaSolicitudFin}
-//                 onChange={(e) => setFechaSolicitudFin(e.target.value)}
-//                 size="small"
-//                 InputLabelProps={{ shrink: true }}
-//                 required
-//                 disabled={!!requestDto}
-//               />
-//             </Box>
-
-//             <Box sx={{ flex: "1 1 200px" }}>
-//               <Typography
-//                 variant="body2"
-//                 color="text.secondary"
-//                 fontWeight={600}
-//                 mb={1}
-//               >
-//                 Fecha Entrega Solicitada
-//               </Typography>
-//               <TextField
-//                 type="date"
-//                 fullWidth
-//                 value={fechaEntregaSolicitada}
-//                 onChange={(e) => setFechaEntregaSolicitada(e.target.value)}
-//                 size="small"
-//                 InputLabelProps={{ shrink: true }}
-//                 disabled={!!requestDto}
-//               />
-//             </Box>
-
-//             <Box sx={{ flex: "1 1 250px" }}>
-//               <Typography
-//                 variant="body2"
-//                 color="text.secondary"
-//                 fontWeight={600}
-//                 mb={1}
-//               >
-//                 Región
-//               </Typography>
-//               <Autocomplete
-//                 value={region}
-//                 onChange={(_, newValue) => setRegion(newValue)}
-//                 options={regionesDisponibles}
-//                 renderInput={(params) => (
-//                   <TextField
-//                     {...params}
-//                     placeholder="Selecciona región"
-//                     size="small"
-//                   />
-//                 )}
-//                 size="small"
-//                 disabled={!!requestDto}
-//               />
-//             </Box>
-
-//             <ButtonBase
-//               onClick={handleGenerarSolicitud}
-//               startIcon={
-//                 loading ? (
-//                   <CircularProgress size={20} color="inherit" />
-//                 ) : (
-//                   <SearchOutlined />
-//                 )
-//               }
-//               label={loading ? "Generando..." : "Generar Solicitud"}
-//               disabled={
-//                 loading || !fechaSolicitud || !fechaSolicitudFin || !!requestDto
-//               }
-//             />
-//           </Box>
-//         </Box>
-
-//         {/* Campo de notas */}
-//         <Box sx={{ mb: 3 }}>
-//           <Typography
-//             variant="body2"
-//             color="text.secondary"
-//             fontWeight={600}
-//             mb={1}
-//           >
-//             Notas adicionales
-//           </Typography>
-//           <TextField
-//             fullWidth
-//             multiline
-//             rows={2}
-//             value={notas}
-//             onChange={(e) => setNotas(e.target.value)}
-//             placeholder="Agrega notas o justificación para esta solicitud..."
-//             size="small"
-//             disabled={!!requestDto}
-//           />
-//         </Box>
-
-//         {requestDto && (
-//           <>
-//             <Divider sx={{ my: 3 }} />
-
-//             {/* Información de la solicitud generada */}
-//             <Box
-//               sx={{
-//                 mb: 3,
-//                 p: 2,
-//                 bgcolor: "primary.lighter",
-//                 borderRadius: 2,
-//                 border: "2px solid",
-//                 borderColor: "primary.main",
-//               }}
-//             >
-//               <Typography variant="subtitle1" fontWeight={700} mb={1}>
-//                 📋 Solicitud: {requestDto.requestNumber}
-//               </Typography>
-//               <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-//                 <Typography variant="body2">
-//                   <strong>Estado:</strong> {requestDto.status}
-//                 </Typography>
-//                 <Typography variant="body2">
-//                   <strong>Total Items:</strong> {requestDto.totalItemsCount}
-//                 </Typography>
-//                 <Typography variant="body2">
-//                   <strong>Cantidad Total:</strong> {requestDto.totalQuantity}
-//                 </Typography>
-//                 <Typography variant="body2">
-//                   <strong>Total Estimado:</strong> S/.{" "}
-//                   {totalEstimado.toFixed(2)}
-//                 </Typography>
-//               </Box>
-//             </Box>
-
-//             {/* SECCIÓN MATERIALES */}
-//             {materialesAPI.length > 0 && (
-//               <Box sx={{ mb: 4 }}>
-//                 <Box
-//                   sx={{
-//                     display: "flex",
-//                     alignItems: "center",
-//                     justifyContent: "space-between",
-//                     mb: 2,
-//                   }}
-//                 >
-//                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-//                     <Typography
-//                       variant="body2"
-//                       fontWeight={600}
-//                       sx={{ color: categoriaConfig.MATERIAL.color }}
-//                     >
-//                       {categoriaConfig.MATERIAL.icon} Materiales
-//                     </Typography>
-//                     <Chip
-//                       label={`${materialesAPI.length} items`}
-//                       size="small"
-//                       sx={{
-//                         bgcolor: categoriaConfig.MATERIAL.color,
-//                         color: "white",
-//                         fontWeight: 600,
-//                       }}
-//                     />
-//                   </Box>
-//                   <ButtonBase
-//                     variant="contained"
-//                     size="small"
-//                     label="Exportar materiales"
-//                     startIcon={<FileDownloadOutlined />}
-//                     onClick={exportarMateriales}
-//                     sx={{
-//                       bgcolor: categoriaConfig.MATERIAL.color,
-//                       "&:hover": {
-//                         bgcolor: categoriaConfig.MATERIAL.color,
-//                         filter: "brightness(0.9)",
-//                       },
-//                       textTransform: "none",
-//                     }}
-//                   />
-//                 </Box>
-
-//                 <TableContainer
-//                   component={Paper}
-//                   sx={{
-//                     maxHeight: 400,
-//                     border: "2px solid",
-//                     borderColor: `${categoriaConfig.MATERIAL.color}30`,
-//                   }}
-//                 >
-//                   <Table stickyHeader size="small">
-//                     <TableHead>
-//                       <TableRow>
-//                         <TableCell
-//                           sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-//                         >
-//                           Código
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-//                         >
-//                           Descripción
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             textAlign: "center",
-//                           }}
-//                         >
-//                           Consumo Período
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             width: 150,
-//                           }}
-//                         >
-//                           Cantidad Solicitada
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             textAlign: "right",
-//                           }}
-//                         >
-//                           Precio Unit.
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             textAlign: "right",
-//                           }}
-//                         >
-//                           Total
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             textAlign: "center",
-//                           }}
-//                         >
-//                           Urgente
-//                         </TableCell>
-//                       </TableRow>
-//                     </TableHead>
-//                     <TableBody>
-//                       {materialesAPI.map((material) => (
-//                         <TableRow
-//                           key={material.id}
-//                           sx={{
-//                             "&:hover": { bgcolor: "action.hover" },
-//                             bgcolor: material.isUrgent
-//                               ? "#fff3e0"
-//                               : "inherit",
-//                           }}
-//                         >
-//                           <TableCell>
-//                             <Typography variant="body2" fontWeight={600}>
-//                               {material.itemCode}
-//                             </Typography>
-//                           </TableCell>
-//                           <TableCell>
-//                             <Typography variant="body2">
-//                               {material.itemName}
-//                             </Typography>
-//                           </TableCell>
-//                           <TableCell align="center">
-//                             <Chip
-//                               label={material.quantityUsedInPeriod}
-//                               size="small"
-//                               color="info"
-//                               variant="outlined"
-//                             />
-//                           </TableCell>
-//                           <TableCell>
-//                             <TextField
-//                               type="number"
-//                               size="small"
-//                               value={material.requestedQuantity}
-//                               onChange={(e) =>
-//                                 actualizarCantidadMaterial(
-//                                   material.id,
-//                                   e.target.value
-//                                 )
-//                               }
-//                               inputProps={{ min: 0 }}
-//                               sx={{ width: "100%" }}
-//                             />
-//                           </TableCell>
-//                           <TableCell align="right">
-//                             <Typography variant="body2">
-//                               S/. {material.unitPrice.toFixed(2)}
-//                             </Typography>
-//                           </TableCell>
-//                           <TableCell align="right">
-//                             <Typography variant="body2" fontWeight={600}>
-//                               S/. {material.totalPrice.toFixed(2)}
-//                             </Typography>
-//                           </TableCell>
-//                           <TableCell align="center">
-//                             <Checkbox
-//                               checked={material.isUrgent}
-//                               onChange={() =>
-//                                 toggleUrgente(material.id, "MATERIAL")
-//                               }
-//                               color="warning"
-//                             />
-//                           </TableCell>
-//                         </TableRow>
-//                       ))}
-//                     </TableBody>
-//                   </Table>
-//                 </TableContainer>
-//               </Box>
-//             )}
-
-//             {/* SECCIÓN HERRAMIENTAS */}
-//             {herramientasAPI.length > 0 && (
-//               <Box sx={{ mb: 4 }}>
-//                 <Box
-//                   sx={{
-//                     display: "flex",
-//                     alignItems: "center",
-//                     justifyContent: "space-between",
-//                     mb: 2,
-//                   }}
-//                 >
-//                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-//                     <Typography
-//                       variant="body2"
-//                       fontWeight={600}
-//                       sx={{ color: categoriaConfig.TOOL.color }}
-//                     >
-//                       {categoriaConfig.TOOL.icon} Herramientas
-//                     </Typography>
-//                     <Chip
-//                       label={`${herramientasAPI.length} items`}
-//                       size="small"
-//                       sx={{
-//                         bgcolor: categoriaConfig.TOOL.color,
-//                         color: "white",
-//                         fontWeight: 600,
-//                       }}
-//                     />
-//                   </Box>
-//                   <ButtonBase
-//                     variant="contained"
-//                     size="small"
-//                     label="Exportar Herramientas"
-//                     startIcon={<FileDownloadOutlined />}
-//                     onClick={exportarHerramientas}
-//                     sx={{
-//                       bgcolor: categoriaConfig.TOOL.color,
-//                       "&:hover": {
-//                         bgcolor: categoriaConfig.TOOL.color,
-//                         filter: "brightness(0.9)",
-//                       },
-//                       textTransform: "none",
-//                     }}
-//                   />
-//                 </Box>
-
-//                 <TableContainer
-//                   component={Paper}
-//                   sx={{
-//                     maxHeight: 400,
-//                     border: "2px solid",
-//                     borderColor: `${categoriaConfig.TOOL.color}30`,
-//                   }}
-//                 >
-//                   <Table stickyHeader size="small">
-//                     <TableHead>
-//                       <TableRow>
-//                         <TableCell
-//                           sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-//                         >
-//                           Código
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-//                         >
-//                           Descripción
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             textAlign: "center",
-//                           }}
-//                         >
-//                           Consumo Período
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             width: 150,
-//                           }}
-//                         >
-//                           Cantidad Solicitada
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             textAlign: "right",
-//                           }}
-//                         >
-//                           Precio Unit.
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             textAlign: "right",
-//                           }}
-//                         >
-//                           Total
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             textAlign: "center",
-//                           }}
-//                         >
-//                           Urgente
-//                         </TableCell>
-//                       </TableRow>
-//                     </TableHead>
-//                     <TableBody>
-//                       {herramientasAPI.map((herramienta) => (
-//                         <TableRow
-//                           key={herramienta.id}
-//                           sx={{
-//                             "&:hover": { bgcolor: "action.hover" },
-//                             bgcolor: herramienta.isUrgent
-//                               ? "#fff3e0"
-//                               : "inherit",
-//                           }}
-//                         >
-//                           <TableCell>
-//                             <Typography variant="body2" fontWeight={600}>
-//                               {herramienta.itemCode}
-//                             </Typography>
-//                           </TableCell>
-//                           <TableCell>
-//                             <Typography variant="body2">
-//                               {herramienta.itemName}
-//                             </Typography>
-//                           </TableCell>
-//                           <TableCell align="center">
-//                             <Chip
-//                               label={herramienta.quantityUsedInPeriod}
-//                               size="small"
-//                               color="info"
-//                               variant="outlined"
-//                             />
-//                           </TableCell>
-//                           <TableCell>
-//                             <TextField
-//                               type="number"
-//                               size="small"
-//                               value={herramienta.requestedQuantity}
-//                               onChange={(e) =>
-//                                 actualizarCantidadHerramienta(
-//                                   herramienta.id,
-//                                   e.target.value
-//                                 )
-//                               }
-//                               inputProps={{ min: 0 }}
-//                               sx={{ width: "100%" }}
-//                             />
-//                           </TableCell>
-//                           <TableCell align="right">
-//                             <Typography variant="body2">
-//                               S/. {herramienta.unitPrice.toFixed(2)}
-//                             </Typography>
-//                           </TableCell>
-//                           <TableCell align="right">
-//                             <Typography variant="body2" fontWeight={600}>
-//                               S/. {herramienta.totalPrice.toFixed(2)}
-//                             </Typography>
-//                           </TableCell>
-//                           <TableCell align="center">
-//                             <Checkbox
-//                               checked={herramienta.isUrgent}
-//                               onChange={() =>
-//                                 toggleUrgente(herramienta.id, "TOOL")
-//                               }
-//                               color="warning"
-//                             />
-//                           </TableCell>
-//                         </TableRow>
-//                       ))}
-//                     </TableBody>
-//                   </Table>
-//                 </TableContainer>
-//               </Box>
-//             )}
-
-//             {/* SECCIÓN EQUIPOS */}
-//             {equiposAPI.length > 0 && (
-//               <Box sx={{ mb: 4 }}>
-//                 <Box
-//                   sx={{
-//                     display: "flex",
-//                     alignItems: "center",
-//                     justifyContent: "space-between",
-//                     mb: 2,
-//                   }}
-//                 >
-//                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-//                     <Typography
-//                       variant="body2"
-//                       fontWeight={600}
-//                       sx={{ color: categoriaConfig.EQUIPMENT.color }}
-//                     >
-//                       {categoriaConfig.EQUIPMENT.icon} Equipos
-//                     </Typography>
-//                     <Chip
-//                       label={`${equiposAPI.length} items`}
-//                       size="small"
-//                       sx={{
-//                         bgcolor: categoriaConfig.EQUIPMENT.color,
-//                         color: "white",
-//                         fontWeight: 600,
-//                       }}
-//                     />
-//                   </Box>
-//                   <ButtonBase
-//                     variant="contained"
-//                     label="Exportar Equipos"
-//                     size="small"
-//                     startIcon={<FileDownloadOutlined />}
-//                     onClick={exportarEquipos}
-//                     sx={{
-//                       bgcolor: categoriaConfig.EQUIPMENT.color,
-//                       "&:hover": {
-//                         bgcolor: categoriaConfig.EQUIPMENT.color,
-//                         filter: "brightness(0.9)",
-//                       },
-//                       textTransform: "none",
-//                     }}
-//                   />
-//                 </Box>
-
-//                 <TableContainer
-//                   component={Paper}
-//                   sx={{
-//                     maxHeight: 400,
-//                     border: "2px solid",
-//                     borderColor: `${categoriaConfig.EQUIPMENT.color}30`,
-//                   }}
-//                 >
-//                   <Table stickyHeader size="small">
-//                     <TableHead>
-//                       <TableRow>
-//                         <TableCell
-//                           sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-//                         >
-//                           Código
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{ fontWeight: 700, bgcolor: "background.paper" }}
-//                         >
-//                           Descripción
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             textAlign: "center",
-//                           }}
-//                         >
-//                           Consumo Período
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             width: 150,
-//                           }}
-//                         >
-//                           Cantidad Solicitada
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             textAlign: "right",
-//                           }}
-//                         >
-//                           Precio Unit.
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             textAlign: "right",
-//                           }}
-//                         >
-//                           Total
-//                         </TableCell>
-//                         <TableCell
-//                           sx={{
-//                             fontWeight: 700,
-//                             bgcolor: "background.paper",
-//                             textAlign: "center",
-//                           }}
-//                         >
-//                           Urgente
-//                         </TableCell>
-//                       </TableRow>
-//                     </TableHead>
-//                     <TableBody>
-//                       {equiposAPI.map((equipo) => (
-//                         <TableRow
-//                           key={equipo.id}
-//                           sx={{
-//                             "&:hover": { bgcolor: "action.hover" },
-//                             bgcolor: equipo.isUrgent ? "#fff3e0" : "inherit",
-//                           }}
-//                         >
-//                           <TableCell>
-//                             <Typography variant="body2" fontWeight={600}>
-//                               {equipo.itemCode}
-//                             </Typography>
-//                           </TableCell>
-//                           <TableCell>
-//                             <Typography variant="body2">
-//                               {equipo.itemName}
-//                             </Typography>
-//                             {equipo.specifications && (
-//                               <Typography
-//                                 variant="caption"
-//                                 color="text.secondary"
-//                                 display="block"
-//                               >
-//                                 {equipo.specifications}
-//                               </Typography>
-//                             )}
-//                           </TableCell>
-//                           <TableCell align="center">
-//                             <Chip
-//                               label={equipo.quantityUsedInPeriod}
-//                               size="small"
-//                               color="info"
-//                               variant="outlined"
-//                             />
-//                           </TableCell>
-//                           <TableCell>
-//                             <TextField
-//                               type="number"
-//                               size="small"
-//                               value={equipo.requestedQuantity}
-//                               onChange={(e) =>
-//                                 actualizarCantidadEquipo(
-//                                   equipo.id,
-//                                   e.target.value
-//                                 )
-//                               }
-//                               inputProps={{ min: 0 }}
-//                               sx={{ width: "100%" }}
-//                             />
-//                           </TableCell>
-//                           <TableCell align="right">
-//                             <Typography variant="body2">
-//                               S/. {equipo.unitPrice.toFixed(2)}
-//                             </Typography>
-//                           </TableCell>
-//                           <TableCell align="right">
-//                             <Typography variant="body2" fontWeight={600}>
-//                               S/. {equipo.totalPrice.toFixed(2)}
-//                             </Typography>
-//                           </TableCell>
-//                           <TableCell align="center">
-//                             <Checkbox
-//                               checked={equipo.isUrgent}
-//                               onChange={() =>
-//                                 toggleUrgente(equipo.id, "EQUIPMENT")
-//                               }
-//                               color="warning"
-//                             />
-//                           </TableCell>
-//                         </TableRow>
-//                       ))}
-//                     </TableBody>
-//                   </Table>
-//                 </TableContainer>
-//               </Box>
-//             )}
-
-//             <Divider sx={{ my: 3 }} />
-
-//             {/* Botones de Acción */}
-//             <Box
-//               sx={{
-//                 display: "flex",
-//                 gap: 2,
-//                 justifyContent: "flex-end",
-//                 flexWrap: "wrap",
-//               }}
-//             >
-//               <ButtonBase
-//                 variant="outlined"
-//                 label="Recargar Datos"
-//                 startIcon={<RefreshOutlined />}
-//                 onClick={handleGenerarSolicitud}
-//                 disabled={loading}
-//                 sx={{
-//                   textTransform: "none",
-//                   px: 4,
-//                   py: 1.2,
-//                 }}
-//               />
-
-//               <ButtonBase
-//                 variant="outlined"
-//                 label="Guardar Borrador"
-//                 startIcon={<SaveOutlined />}
-//                 onClick={handleGuardarBorrador}
-//                 sx={{
-//                   textTransform: "none",
-//                   px: 4,
-//                   py: 1.2,
-//                 }}
-//               />
-
-//               <ButtonBase
-//                 label={
-//                   submitting ? "Enviando..." : "Confirmar y Enviar Solicitud"
-//                 }
-//                 startIcon={
-//                   submitting ? (
-//                     <CircularProgress size={20} color="inherit" />
-//                   ) : (
-//                     <SendOutlined />
-//                   )
-//                 }
-//                 onClick={handleConfirmarSolicitud}
-//                 disabled={submitting || requestDto.status !== "DRAFT"}
-//               />
-//             </Box>
-//           </>
-//         )}
-//       </Card>
-
-//       {/* Dialog de Confirmación */}
-//       <Dialog
-//         open={confirmDialogOpen}
-//         onClose={() => setConfirmDialogOpen(false)}
-//         maxWidth="sm"
-//         fullWidth
-//       >
-//         <DialogTitle>
-//           <Typography variant="body2" fontWeight={600}>
-//             ⚠️ Confirmar Envío de Solicitud
-//           </Typography>
-//         </DialogTitle>
-//         <DialogContent>
-//           <Typography variant="body1" mb={2}>
-//             ¿Estás seguro de enviar esta solicitud para aprobación?
-//           </Typography>
-//           <Box
-//             sx={{
-//               p: 2,
-//               bgcolor: "background.default",
-//               borderRadius: 2,
-//               mb: 2,
-//             }}
-//           >
-//             <Typography variant="body2" fontWeight={600} mb={1}>
-//               Resumen de la solicitud:
-//             </Typography>
-//             <Typography variant="body2">
-//               • Número: {requestDto?.requestNumber}
-//             </Typography>
-//             <Typography variant="body2">
-//               • Total Items: {requestDto?.totalItemsCount}
-//             </Typography>
-//             <Typography variant="body2">
-//               • Cantidad Total: {requestDto?.totalQuantity}
-//             </Typography>
-//             <Typography variant="body2">
-//               • Valor Estimado: S/. {totalEstimado.toFixed(2)}
-//             </Typography>
-//           </Box>
-//           <Alert severity="info" sx={{ borderRadius: 2 }}>
-//             Una vez enviada, la solicitud pasará a estado de aprobación y no
-//             podrás editarla.
-//           </Alert>
-//         </DialogContent>
-//         <DialogActions sx={{ p: 2, gap: 1 }}>
-//           <ButtonBase
-//             variant="outlined"
-//             label="Cancelar"
-//             onClick={() => setConfirmDialogOpen(false)}
-//           />
-//           <ButtonBase
-//             label="Confirmar Envío"
-//             startIcon={<SendOutlined />}
-//             onClick={handleEnviarSolicitud}
-//           />
-//         </DialogActions>
-//       </Dialog>
-//     </Box>
-//   );
-// }
-
 "use client";
 
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
+import { useEffect } from "react";
 import {
   Box,
   Card,
@@ -4306,62 +42,14 @@ import { SectionHeader } from "@/src/components/base/SectionHeader";
 import * as XLSX from "xlsx";
 import ButtonBase from "@/src/components/base/ButtonBase";
 import { API_URL } from "@/src/lib/config";
-
-type EntidadDestino = "CLARO" | "LEMCORP";
-type ProductType = "EQUIPMENT" | "MATERIAL" | "TOOL";
-
-interface SupplyRequestItem {
-  id: string;
-  itemId: string;
-  itemCode: string;
-  itemName: string;
-  itemDescription: string;
-  productType: ProductType;
-  quantityUsedInPeriod: number;
-  requestedQuantity: number;
-  approvedQuantity: number | null;
-  deliveredQuantity: number;
-  pendingQuantity: number;
-  unitPrice: number;
-  totalPrice: number;
-  priority: number;
-  isUrgent: boolean;
-  isFullyDelivered: boolean;
-  isPartiallyDelivered: boolean;
-  deliveryPercentage: number;
-  specifications?: string;
-  uom?: string;
-}
-
-interface SupplyRequestDto {
-  id: string;
-  requestNumber: string;
-  status: string;
-  periodStartDate: string;
-  periodEndDate: string;
-  hubId: string;
-  hubName: string | null;
-  items: SupplyRequestItem[];
-  totalItemsCount: number;
-  totalQuantity: number;
-  totalEstimatedValue: number;
-  requestedDeliveryDate: string;
-  actualDeliveryDate: string | null;
-  notes: string;
-  justification: string | null;
-  createdBy: string;
-  createdByName: string | null;
-  createdAt: string;
-  approvedBy: string | null;
-  approvedByName: string | null;
-  approvedAt: string | null;
-  deliveredBy: string | null;
-  deliveredByName: string | null;
-  deliveredAt: string | null;
-}
-
+import DatePickerBase from "@/src/components/base/DatePickerBase";
+import dayjs, { Dayjs } from "dayjs";
+import SelectBase from "@/src/components/base/SelectBase";
+import { toast } from "react-toastify";
+import { CatalogService } from "@/src/services/api/CatalogService";
+import { CatalogDTO } from "@/src/types/Catalog.types";
 // Datos de ejemplo
-const regionesDisponibles = ["Lima", "Arequipa", "Cusco", "Trujillo", "Piura"];
+//const regionesDisponibles = ["Lima", "Arequipa", "Cusco", "Trujillo", "Piura"];
 
 const categoriaConfig = {
   MATERIAL: {
@@ -4402,13 +90,77 @@ export default function SolicitudAbastecimiento() {
   const [region, setRegion] = useState<string | null>(null);
   const [notas, setNotas] = useState("");
 
+  //Estados de filtros fechas inicio - fin
+  const [valueInit, setValueInit] = useState<Dayjs | null>(dayjs());
+  const [valueFin, setValueFin] = useState<Dayjs | null>(dayjs());
+  console.log(valueInit, "testing-valueInit");
+  //Estados de filtros fecha de entrega solicitada
+  const [valueEntrega, setValueEntrega] = useState<Dayjs | null>(dayjs());
+
+  // Estados para seleccionar empresa y proyecto
+  const [valueEmpresaSeleccionada, setEmpresaSeleccionada] = useState<
+    string | number | null
+  >(null);
+  const [valueProyectoSeleccionado, setProyectoSeleccionado] = useState<
+    string | number | null
+  >(null);
+
+  const [catalogos, setCatalogos] = useState<CatalogDTO>({
+    companies: [],
+    projects: []
+  });
+
+  // useEffect(() => {
+  //   // Esto normalmente vendría de la API
+  //   const res = {
+  //     EMPRESAS_REGISTRADAS: [
+  //       { label: "Empresa A", value: 1 },
+  //       { label: "Empresa B", value: 2 },
+  //     ],
+  //     PROYECTOS: [
+  //       { label: "Proyecto X", value: 101 },
+  //       { label: "Proyecto Y", value: 102 },
+  //     ],
+  //   };
+
+  //   setCatalogos(res);
+  // }, []);
+
+  useEffect(() => {
+    const loadCatalogs = async () => {
+      try {
+        const data = await CatalogService.getAllCatalogs();
+
+        setCatalogos({
+          companies: data.companies,
+          projects: data.projects
+        });
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    loadCatalogs();
+  }, []);
+
+  const companyOptions = catalogos.companies.map(company => ({
+    label: company.reasonSocial,
+    value: company.id
+  }));
+
+  const projectOptions = catalogos.projects.map(project => ({
+    label: project.name,
+    value: project.id
+  }));
+
   // Estado principal para almacenar toda la respuesta del API
   const [requestDto, setRequestDto] = useState<SupplyRequestDto | null>(null);
 
   // Estados para los items separados por tipo (vistas derivadas del requestDto)
   const [materialesAPI, setMaterialesAPI] = useState<SupplyRequestItem[]>([]);
   const [herramientasAPI, setHerramientasAPI] = useState<SupplyRequestItem[]>(
-    []
+    [],
   );
   const [equiposAPI, setEquiposAPI] = useState<SupplyRequestItem[]>([]);
 
@@ -4430,7 +182,7 @@ export default function SolicitudAbastecimiento() {
 
   const handleEntidadChange = (
     _event: React.MouseEvent<HTMLElement>,
-    newEntidad: EntidadDestino | null
+    newEntidad: EntidadDestino | null,
   ) => {
     if (newEntidad !== null) {
       setEntidadDestino(newEntidad);
@@ -4469,11 +221,11 @@ export default function SolicitudAbastecimiento() {
 
     const totalQuantity = nuevosItems.reduce(
       (sum, item) => sum + item.requestedQuantity,
-      0
+      0,
     );
     const totalEstimatedValue = nuevosItems.reduce(
       (sum, item) => sum + item.totalPrice,
-      0
+      0,
     );
 
     setRequestDto({
@@ -4487,11 +239,13 @@ export default function SolicitudAbastecimiento() {
 
   // Handler para generar/obtener solicitud desde el período
   const handleGenerarSolicitud = async () => {
-    if (!fechaSolicitud || !fechaSolicitudFin) {
-      setErrorMessage("Debes seleccionar fecha de inicio y fin del período");
-      return;
-    }
-
+    // if (!valueInit || !valueFin) {
+    //   setErrorMessage("Debes seleccionar fecha de inicio y fin del período");
+    //   return;
+    // }
+    toast.info("soy muy pro", {
+      position: "top-right"
+    })
     setLoading(true);
     setErrorMessage("");
     setShowSuccessGenerate(false);
@@ -4504,15 +258,18 @@ export default function SolicitudAbastecimiento() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tenantId: TENANT_ID,
+          //proyect id 
           hubId: HUB_ID,
-          periodStartDate: fechaSolicitud,
-          periodEndDate: fechaSolicitudFin,
+          periodStartDate: valueInit,
+          periodEndDate: valueFin,
+          periodValueEntrega: valueEntrega,
+          tenantId: valueEmpresaSeleccionada,
+          projectId: valueProyectoSeleccionado,
           requestedBy: USER_ID,
           notes:
             notas ||
-            `Solicitud generada para período ${fechaSolicitud} - ${fechaSolicitudFin}`,
-          requestedDeliveryDate: fechaEntregaSolicitada || null,
+            `Solicitud generada para período ${valueInit} - ${valueFin}`,
+          requestedDeliveryDate: valueEntrega
         }),
       });
 
@@ -4527,13 +284,13 @@ export default function SolicitudAbastecimiento() {
 
       // Separar items por tipo de producto
       const materiales = data.items.filter(
-        (item) => item.productType === "MATERIAL"
+        (item) => item.productType === "MATERIAL",
       );
       const herramientas = data.items.filter(
-        (item) => item.productType === "TOOL"
+        (item) => item.productType === "TOOL",
       );
       const equipos = data.items.filter(
-        (item) => item.productType === "EQUIPMENT"
+        (item) => item.productType === "EQUIPMENT",
       );
 
       setMaterialesAPI(materiales);
@@ -4546,7 +303,7 @@ export default function SolicitudAbastecimiento() {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Error al cargar los datos del período"
+          : "Error al cargar los datos del período",
       );
     } finally {
       setLoading(false);
@@ -4561,21 +318,17 @@ export default function SolicitudAbastecimiento() {
       const updated = prev.map((item) =>
         item.id === itemId
           ? {
-              ...item,
-              requestedQuantity: cantidadNum,
-              totalPrice: cantidadNum * item.unitPrice,
-              pendingQuantity: cantidadNum - item.deliveredQuantity,
-            }
-          : item
+            ...item,
+            requestedQuantity: cantidadNum,
+            totalPrice: cantidadNum * item.unitPrice,
+            pendingQuantity: cantidadNum - item.deliveredQuantity,
+          }
+          : item,
       );
 
       // Sincronizar con requestDto
       if (requestDto) {
-        const todosLosItems = [
-          ...updated,
-          ...herramientasAPI,
-          ...equiposAPI,
-        ];
+        const todosLosItems = [...updated, ...herramientasAPI, ...equiposAPI];
         actualizarRequestDto(todosLosItems);
       }
 
@@ -4590,12 +343,12 @@ export default function SolicitudAbastecimiento() {
       const updated = prev.map((item) =>
         item.id === itemId
           ? {
-              ...item,
-              requestedQuantity: cantidadNum,
-              totalPrice: cantidadNum * item.unitPrice,
-              pendingQuantity: cantidadNum - item.deliveredQuantity,
-            }
-          : item
+            ...item,
+            requestedQuantity: cantidadNum,
+            totalPrice: cantidadNum * item.unitPrice,
+            pendingQuantity: cantidadNum - item.deliveredQuantity,
+          }
+          : item,
       );
 
       // Sincronizar con requestDto
@@ -4615,12 +368,12 @@ export default function SolicitudAbastecimiento() {
       const updated = prev.map((item) =>
         item.id === itemId
           ? {
-              ...item,
-              requestedQuantity: cantidadNum,
-              totalPrice: cantidadNum * item.unitPrice,
-              pendingQuantity: cantidadNum - item.deliveredQuantity,
-            }
-          : item
+            ...item,
+            requestedQuantity: cantidadNum,
+            totalPrice: cantidadNum * item.unitPrice,
+            pendingQuantity: cantidadNum - item.deliveredQuantity,
+          }
+          : item,
       );
 
       // Sincronizar con requestDto
@@ -4640,18 +393,18 @@ export default function SolicitudAbastecimiento() {
   // Marcar item como urgente y sincronizar
   const toggleUrgente = (
     itemId: string,
-    tipo: "MATERIAL" | "TOOL" | "EQUIPMENT"
+    tipo: "MATERIAL" | "TOOL" | "EQUIPMENT",
   ) => {
     const setter =
       tipo === "MATERIAL"
         ? setMaterialesAPI
         : tipo === "TOOL"
-        ? setHerramientasAPI
-        : setEquiposAPI;
+          ? setHerramientasAPI
+          : setEquiposAPI;
 
     setter((prev) => {
       const updated = prev.map((item) =>
-        item.id === itemId ? { ...item, isUrgent: !item.isUrgent } : item
+        item.id === itemId ? { ...item, isUrgent: !item.isUrgent } : item,
       );
 
       // Sincronizar con requestDto
@@ -4660,8 +413,8 @@ export default function SolicitudAbastecimiento() {
           tipo === "MATERIAL"
             ? [...updated, ...herramientasAPI, ...equiposAPI]
             : tipo === "TOOL"
-            ? [...materialesAPI, ...updated, ...equiposAPI]
-            : [...materialesAPI, ...herramientasAPI, ...updated];
+              ? [...materialesAPI, ...updated, ...equiposAPI]
+              : [...materialesAPI, ...herramientasAPI, ...updated];
 
         actualizarRequestDto(todosLosItems);
       }
@@ -4681,6 +434,18 @@ export default function SolicitudAbastecimiento() {
     alert("Borrador guardado correctamente");
   };
 
+  const handleSubmit = () => {
+    //monitorear los cambios de la solicitud ,
+    //cambiar el estado a confirmado 
+    //peraparar un api rest que reciba parametro de estado, e items,
+    //invocar a la funcion exportarExcel
+    //levantar un modal informativo con la respuesta el api
+    // numero de solicitud
+    // periodos de consulta
+    // empresa y proyecto
+    //pinte la cantidad de items segun tipo de producto
+  }
+
   // Confirmar y enviar solicitud
   const handleConfirmarSolicitud = () => {
     if (!requestDto) {
@@ -4690,11 +455,11 @@ export default function SolicitudAbastecimiento() {
 
     // Validar que haya al menos un item con cantidad > 0
     const hasItems = requestDto.items.some(
-      (item) => item.requestedQuantity > 0
+      (item) => item.requestedQuantity > 0,
     );
     if (!hasItems) {
       setErrorMessage(
-        "Debes tener al menos un item con cantidad mayor a 0 para enviar la solicitud"
+        "Debes tener al menos un item con cantidad mayor a 0 para enviar la solicitud",
       );
       return;
     }
@@ -4720,7 +485,7 @@ export default function SolicitudAbastecimiento() {
           body: JSON.stringify({
             submittedBy: USER_ID,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -4741,7 +506,7 @@ export default function SolicitudAbastecimiento() {
     } catch (error) {
       console.error("Error al enviar solicitud:", error);
       setErrorMessage(
-        error instanceof Error ? error.message : "Error al enviar la solicitud"
+        error instanceof Error ? error.message : "Error al enviar la solicitud",
       );
     } finally {
       setSubmitting(false);
@@ -4765,7 +530,7 @@ export default function SolicitudAbastecimiento() {
         "Precio Total": m.totalPrice,
         Urgente: m.isUrgent ? "SÍ" : "NO",
       })),
-      "Materiales"
+      "Materiales",
     );
   };
 
@@ -4785,7 +550,7 @@ export default function SolicitudAbastecimiento() {
         "Precio Total": h.totalPrice,
         Urgente: h.isUrgent ? "SÍ" : "NO",
       })),
-      "Herramientas"
+      "Herramientas",
     );
   };
 
@@ -4805,7 +570,7 @@ export default function SolicitudAbastecimiento() {
         Urgente: e.isUrgent ? "SÍ" : "NO",
         Especificaciones: e.specifications || "",
       })),
-      "Equipos"
+      "Equipos",
     );
   };
 
@@ -4817,9 +582,8 @@ export default function SolicitudAbastecimiento() {
     const fecha = new Date().toISOString().split("T")[0];
     XLSX.writeFile(
       workbook,
-      `Solicitud_${nombreCategoria}_${entidadDestino}_${
-        requestDto?.requestNumber || fecha
-      }.xlsx`
+      `Solicitud_${nombreCategoria}_${entidadDestino}_${requestDto?.requestNumber || fecha
+      }.xlsx`,
     );
 
     setShowSuccessExport(true);
@@ -4978,21 +742,27 @@ export default function SolicitudAbastecimiento() {
           <Box
             sx={{
               display: "flex",
-              gap: 2,
+              gap: 1,
+              justifyContent:"initial",
               flexWrap: "wrap",
-              alignItems: "flex-end",
+              // alignItems: "flex-end",
             }}
           >
             <Box sx={{ flex: "1 1 200px" }}>
-              <Typography
+              {/* <Typography
                 variant="body2"
                 color="text.secondary"
                 fontWeight={600}
                 mb={1}
               >
                 Fecha Inicio *
-              </Typography>
-              <TextField
+              </Typography> */}
+              <DatePickerBase
+                value={valueInit}
+                setValue={setValueInit}
+                label="Fecha inicio"
+              />
+              {/* <TextField
                 type="date"
                 fullWidth
                 value={fechaSolicitud}
@@ -5001,19 +771,24 @@ export default function SolicitudAbastecimiento() {
                 InputLabelProps={{ shrink: true }}
                 required
                 disabled={!!requestDto}
-              />
+              /> */}
             </Box>
 
             <Box sx={{ flex: "1 1 200px" }}>
-              <Typography
+              {/*<Typography
                 variant="body2"
                 color="text.secondary"
                 fontWeight={600}
                 mb={1}
               >
                 Fecha Fin *
-              </Typography>
-              <TextField
+              </Typography>*/}
+              <DatePickerBase
+                value={valueFin}
+                setValue={setValueFin}
+                label="Fecha Fin"
+              />
+              {/*<TextField
                 type="date"
                 fullWidth
                 value={fechaSolicitudFin}
@@ -5022,19 +797,24 @@ export default function SolicitudAbastecimiento() {
                 InputLabelProps={{ shrink: true }}
                 required
                 disabled={!!requestDto}
-              />
+              />*/}
             </Box>
 
             <Box sx={{ flex: "1 1 200px" }}>
-              <Typography
+              {/*<Typography
                 variant="body2"
                 color="text.secondary"
                 fontWeight={600}
                 mb={1}
               >
                 Fecha Entrega Solicitada
-              </Typography>
-              <TextField
+              </Typography>*/}
+              <DatePickerBase
+                value={valueEntrega}
+                setValue={setValueEntrega}
+                label="Fecha Entrega Solicitada"
+              />
+              {/*<TextField
                 type="date"
                 fullWidth
                 value={fechaEntregaSolicitada}
@@ -5042,33 +822,57 @@ export default function SolicitudAbastecimiento() {
                 size="small"
                 InputLabelProps={{ shrink: true }}
                 disabled={!!requestDto}
-              />
+              />*/}
             </Box>
 
-            <Box sx={{ flex: "1 1 250px" }}>
-              <Typography
+            <Box sx={{ flex: "1 1 200px" }}>
+              {/* <Typography
                 variant="body2"
                 color="text.secondary"
                 fontWeight={600}
                 mb={1}
               >
                 Región
-              </Typography>
-              <Autocomplete
+              </Typography> */}
+              {
+                /* <Autocomplete
                 value={region}
                 onChange={(_, newValue) => setRegion(newValue)}
                 options={regionesDisponibles}
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    placeholder="Selecciona región"
+                    placeholder="Selecciona empresas registradas"
                     size="small"
                   />
                 )}
                 size="small"
                 disabled={!!requestDto}
+              /> */
+                // <SelectBase
+                //   label="Selecciona empresa"
+                //   value={valueEmpresaSeleccionada ?? ""}
+                //   onChange={setEmpresaSeleccionada}
+                //   options={companyOptions}
+                //   fullWidth
+                //   size="small"
+                // //placeholder="Selecciona empresa"
+                // />
+
+                  <SelectBase
+                label="Selecciona proyecto"
+                value={valueProyectoSeleccionado ?? ""}
+                onChange={setProyectoSeleccionado}
+                options={projectOptions}
+                fullWidth
+                size="medium"
+              //placeholder="Selecciona proyecto"
               />
+              }
+
+              {/* Select Proyectos */}
             </Box>
+         
 
             <ButtonBase
               onClick={handleGenerarSolicitud}
@@ -5080,9 +884,11 @@ export default function SolicitudAbastecimiento() {
                 )
               }
               label={loading ? "Generando..." : "Generar Solicitud"}
-              disabled={
-                loading || !fechaSolicitud || !fechaSolicitudFin || !!requestDto
-              }
+            // disabled={
+            //   //loading || !fechaSolicitud || !fechaSolicitudFin || !!requestDto
+            //   loading || !valueInit || !valueFin || !valueEntrega || !valueEmpresaSeleccionada || !valueProyectoSeleccionado
+
+            // }
             />
           </Box>
         </Box>
@@ -5264,9 +1070,7 @@ export default function SolicitudAbastecimiento() {
                           key={material.id}
                           sx={{
                             "&:hover": { bgcolor: "action.hover" },
-                            bgcolor: material.isUrgent
-                              ? "#fff3e0"
-                              : "inherit",
+                            bgcolor: material.isUrgent ? "#fff3e0" : "inherit",
                           }}
                         >
                           <TableCell>
@@ -5295,7 +1099,7 @@ export default function SolicitudAbastecimiento() {
                               onChange={(e) =>
                                 actualizarCantidadMaterial(
                                   material.id,
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               inputProps={{ min: 0 }}
@@ -5480,7 +1284,7 @@ export default function SolicitudAbastecimiento() {
                               onChange={(e) =>
                                 actualizarCantidadHerramienta(
                                   herramienta.id,
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               inputProps={{ min: 0 }}
@@ -5672,7 +1476,7 @@ export default function SolicitudAbastecimiento() {
                               onChange={(e) =>
                                 actualizarCantidadEquipo(
                                   equipo.id,
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               inputProps={{ min: 0 }}
