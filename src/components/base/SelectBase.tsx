@@ -55,6 +55,8 @@ export default function SelectBase({
         fullWidth={fullWidth}
         disabled={disabled}
         sx={{
+          background: "white",
+          borderRadius: "12px",
 
           "& .MuiSelect-root ": {
             borderRadius: "12px",
@@ -64,6 +66,7 @@ export default function SelectBase({
             color: borderColor,
             fontSize: "small",
 
+
           },
           "& .MuiSelect-select": {
             fontFamily: "'M PLUS Rounded 1c', sans-serif",
@@ -71,7 +74,7 @@ export default function SelectBase({
           },
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: borderColor,
-            
+
           },
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: color,
@@ -84,7 +87,7 @@ export default function SelectBase({
         <InputLabel>{label}</InputLabel>
         <Select
           size={size}
-          value={value.toString()} // Convertimos a string para evitar error con number
+          value={value?.toString()} // Convertimos a string para evitar error con number
           label={label}
           onChange={handleChange}
           displayEmpty={!!placeholder}

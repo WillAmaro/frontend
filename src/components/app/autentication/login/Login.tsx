@@ -690,349 +690,355 @@
 
 
 
-  "use client";
+"use client";
 
-  import { useState } from "react";
-  import { useDispatch } from "react-redux";
-  import { setUser } from "@/src/store/slices/UserSlice";
-  import { AppDispatch } from "@/src/store/Store";
-  import { useRouter } from "next/navigation";
-  import { toast } from "react-toastify";
-  import { authService } from "@/src/services/api/AuthService";
-  import { setRoutes, DrawerRoute } from "@/src/store/slices/DrawerSlices";
-  import { supabase } from "@/src/lib/supabase";
-  import {
-    Box,
-    TextField,
-    Button,
-    Typography,
-    InputAdornment,
-    CircularProgress,
-  } from "@mui/material";
-  import {
-    Email,
-    Lock,
-    ArrowForward,
-    CheckCircle,
-    Public,
-    Security,
-  } from "@mui/icons-material";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/src/store/slices/UserSlice";
+import { AppDispatch } from "@/src/store/Store";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import { authService } from "@/src/services/api/AuthService";
+import { setRoutes, DrawerRoute } from "@/src/store/slices/DrawerSlices";
+import { supabase } from "@/src/lib/supabase";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  InputAdornment,
+  CircularProgress,
+} from "@mui/material";
+import {
+  Email,
+  Lock,
+  ArrowForward,
+  CheckCircle,
+  Public,
+  Security,
+} from "@mui/icons-material";
+import apiClient from "@/src/lib/axios.config";
+import { CatalogService } from "@/src/services/api/CatalogService";
+import { setCompanies } from "@/src/store/slices/CompanySlices";
 
-  export default function ModernLoginEnhanced() {
-    const dispatch = useDispatch<AppDispatch>();
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const router = useRouter();
+export default function ModernLoginEnhanced() {
+  const dispatch = useDispatch<AppDispatch>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const router = useRouter();
 
-    const [userLogin, setUserLogin] = useState({
-      email: "",
-      password: "",
-    });
+  const [userLogin, setUserLogin] = useState({
+    email: "",
+    password: "",
+  });
 
-    const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-  try {
-    console.log("🚀 Iniciando login con Supabase...");
+    try {
+      console.log("🚀 Iniciando login con Supabase...");
 
-    // ===== PASO 1: AUTENTICACIÓN CON SUPABASE AUTH =====
-    // DEBE HACERSE MEDIANTE UN API EN BACKEND
-    const { data: authData, error: authError } =
-      await supabase.auth.signInWithPassword({
-        email: userLogin.email,
-        password: userLogin.password,
-      });
+      // ===== PASO 1: AUTENTICACIÓN CON SUPABASE AUTH =====
+      // DEBE HACERSE MEDIANTE UN API EN BACKEND
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({
+          email: userLogin.email,
+          password: userLogin.password,
+        });
 
-    if (authError) throw new Error(authError.message);
-    if (!authData.session) throw new Error("No se pudo establecer la sesión");
+      if (authError) throw new Error(authError.message);
+      if (!authData.session) throw new Error("No se pudo establecer la sesión");
 
-    console.log("✅ Autenticación exitosa");
+      console.log("✅ Autenticación exitosa");
 
-    // ===== PASO 2: VERIFICAR SI USUARIO EXISTE EN LPS_ERP_LATAM =====
-    const sessionData = await authService.checkUserSession(authData.user.id);
+      // ===== PASO 2: VERIFICAR SI USUARIO EXISTE EN LPS_ERP_LATAM =====
+      const sessionData = await authService.checkUserSession(authData.user.id);
 
-    console.log("📦 Datos de sesión:", sessionData);
+      console.log("📦 Datos de sesión:", sessionData);
 
-    // ===== PASO 3: MANEJAR DIFERENTES ESTADOS DEL USUARIO =====
+      // ===== PASO 3: MANEJAR DIFERENTES ESTADOS DEL USUARIO =====
 
-    // CASO 1: Usuario NO existe - Redirigir a completar perfil
-    if (!sessionData.exists || sessionData.needs_profile_completion) {
-      toast.info("Por favor, completa tu perfil para continuar", {
-        position: "bottom-right",
-      });
+      // CASO 1: Usuario NO existe - Redirigir a completar perfil
+      if (!sessionData.exists || sessionData.needs_profile_completion) {
+        toast.info("Por favor, completa tu perfil para continuar", {
+          position: "bottom-right",
+        });
 
-      // Guardar datos temporales en localStorage
-      localStorage.setItem("temp_user_id", authData.user.id);
-      localStorage.setItem("temp_user_email", authData.user.email || "");
+        // Guardar datos temporales en localStorage
+        localStorage.setItem("temp_user_id", authData.user.id);
+        localStorage.setItem("temp_user_email", authData.user.email || "");
 
-      // Redirigir a completar registro
-      router.push("/completar-registro");
-      return;
-    }
+        // Redirigir a completar registro
+        router.push("/completar-registro");
+        return;
+      }
 
-    // CASO 2: Usuario existe pero está PENDIENTE de aprobación
-    if (sessionData.status === "pending") {
-      toast.warning(
-        sessionData.message ||
+      // CASO 2: Usuario existe pero está PENDIENTE de aprobación
+      if (sessionData.status === "pending") {
+        toast.warning(
+          sessionData.message ||
           "Tu cuenta está pendiente de aprobación. Contacta al administrador.",
-        {
-          position: "bottom-right",
-          autoClose: 5000,
-        }
-      );
-      await authService.logout();
-      setIsLoading(false);
-      return;
-    }
+          {
+            position: "bottom-right",
+            autoClose: 5000,
+          }
+        );
+        await authService.logout();
+        setIsLoading(false);
+        return;
+      }
 
-    // CASO 3: Usuario INACTIVO o SUSPENDIDO
-    if (
-      sessionData.status === "inactive" ||
-      sessionData.status === "suspended"
-    ) {
-      toast.error(
-        sessionData.message || `Tu cuenta está ${sessionData.status}.`,
-        {
-          position: "bottom-right",
-        }
-      );
-      await authService.logout();
-      setIsLoading(false);
-      return;
-    }
+      // CASO 3: Usuario INACTIVO o SUSPENDIDO
+      if (
+        sessionData.status === "inactive" ||
+        sessionData.status === "suspended"
+      ) {
+        toast.error(
+          sessionData.message || `Tu cuenta está ${sessionData.status}.`,
+          {
+            position: "bottom-right",
+          }
+        );
+        await authService.logout();
+        setIsLoading(false);
+        return;
+      }
 
-    // CASO 4: Usuario sin ROL asignado
-    if (sessionData.status === "no_role") {
-      toast.warning("Usuario sin rol asignado. Contacta al administrador.", {
+      // CASO 4: Usuario sin ROL asignado
+      if (sessionData.status === "no_role") {
+        toast.warning("Usuario sin rol asignado. Contacta al administrador.", {
+          position: "bottom-right",
+        });
+        await authService.logout();
+        setIsLoading(false);
+        return;
+      }
+
+      // ===== PASO 4: USUARIO ACTIVO - CARGAR DATOS COMPLETOS =====
+      const userData = sessionData.user!;
+
+      // Mapear permisos para el drawer
+      const drawerRoutes: DrawerRoute[] =
+        userData.role.permissions?.map((perm, index) => ({
+          id: index + 1,
+          label: perm.route_name,
+          path: perm.route,
+          icon: perm.route_icon || "folder",
+        })) || [];
+
+      // Guardar en Redux
+      dispatch(
+        setUser({
+          id: parseInt(userData.user_id),
+          user_id: userData.user_id,
+          name: userData.full_name,
+          email: userData.email,
+          email_verified_at: authData.user.email_confirmed_at || null,
+          created_at: authData.user.created_at || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          tenant_id: userData.tenant_id,
+          role_id: userData.role.role_id,
+          defaultPath: drawerRoutes[0]?.path || "/dashboard",
+          role: {
+            id: parseInt(userData.role.role_id),
+            tenant_id: parseInt(userData.tenant_id),
+            name: userData.role.role_name,
+            description: userData.role.role_description || "",
+            created_at: new Date().toISOString(),
+            updated_at: null,
+          },
+          person: null,
+          token: authData.session.access_token,
+          refreshToken: authData.session.refresh_token,
+        })
+      );
+
+      dispatch(setRoutes(drawerRoutes));
+      const data = await CatalogService.getAllCatalogs();
+      dispatch(setCompanies(data.companies))
+
+
+      toast.success(`Bienvenido ${userData.full_name}`, {
         position: "bottom-right",
       });
-      await authService.logout();
+
+      // Redirigir al dashboard
+      router.push(drawerRoutes[0]?.path || "/dashboard");
+    } catch (error: any) {
+      console.error("❌ Error en login:", error);
+
+      let errorMessage = "Ocurrió un error al iniciar sesión";
+
+      if (error.message.includes("Invalid login credentials")) {
+        errorMessage =
+          "Credenciales inválidas. Verifica tu correo y contraseña.";
+      } else if (error.message.includes("Email not confirmed")) {
+        errorMessage =
+          "Por favor, confirma tu correo electrónico antes de iniciar sesión.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage, {
+        position: "bottom-right",
+      });
+    } finally {
       setIsLoading(false);
-      return;
     }
+  };
 
-    // ===== PASO 4: USUARIO ACTIVO - CARGAR DATOS COMPLETOS =====
-    const userData = sessionData.user!;
-    
-    // Mapear permisos para el drawer
-    const drawerRoutes: DrawerRoute[] =
-      userData.role.permissions?.map((perm, index) => ({
-        id: index + 1,
-        label: perm.route_name,
-        path: perm.route,
-        icon: perm.route_icon || "folder",
-      })) || [];
-      
-    // Guardar en Redux
-    dispatch(
-      setUser({
-        id: parseInt(userData.user_id),
-        user_id:userData.user_id,
-        name: userData.full_name,
-        email: userData.email,
-        email_verified_at: authData.user.email_confirmed_at || null,
-        created_at: authData.user.created_at || new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        tenant_id: userData.tenant_id,
-        role_id: userData.role.role_id,
-        defaultPath: drawerRoutes[0]?.path || "/dashboard",
-        role: {
-          id: parseInt(userData.role.role_id),
-          tenant_id: parseInt(userData.tenant_id),
-          name: userData.role.role_name,
-          description: userData.role.role_description || "",
-          created_at: new Date().toISOString(),
-          updated_at: null,
-        },
-        person: null,
-        token: authData.session.access_token,
-        refreshToken: authData.session.refresh_token,
-      })
-    );
-    
-    dispatch(setRoutes(drawerRoutes));
+  // const handleLogin = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
 
-    toast.success(`Bienvenido ${userData.full_name}`, {
-      position: "bottom-right",
-    });
+  //   try {
+  //     console.log("🚀 Iniciando login con Supabase...");
 
-    // Redirigir al dashboard
-    router.push(drawerRoutes[0]?.path || "/dashboard");
-  } catch (error: any) {
-    console.error("❌ Error en login:", error);
+  //     // ===== PASO 1: AUTENTICACIÓN CON SUPABASE AUTH =====
+  //     const { data: authData, error: authError } =
+  //       await supabase.auth.signInWithPassword({
+  //         email: userLogin.email,
+  //         password: userLogin.password,
+  //       });
 
-    let errorMessage = "Ocurrió un error al iniciar sesión";
+  //     if (authError) throw new Error(authError.message);
+  //     if (!authData.session) throw new Error("No se pudo establecer la sesión");
 
-    if (error.message.includes("Invalid login credentials")) {
-      errorMessage =
-        "Credenciales inválidas. Verifica tu correo y contraseña.";
-    } else if (error.message.includes("Email not confirmed")) {
-      errorMessage =
-        "Por favor, confirma tu correo electrónico antes de iniciar sesión.";
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
+  //     console.log("✅ Autenticación exitosa");
 
-    toast.error(errorMessage, {
-      position: "bottom-right",
-    });
-  } finally {
-    setIsLoading(false);
-  }
-};
+  //     // ===== PASO 2: VERIFICAR SI USUARIO EXISTE EN LPS_ERP_LATAM =====
+  //     const sessionData = await authService.checkUserSession(authData.user.id);
 
-    // const handleLogin = async (e: React.FormEvent) => {
-    //   e.preventDefault();
-    //   setIsLoading(true);
+  //     console.log("📦 Datos de sesión:", sessionData);
 
-    //   try {
-    //     console.log("🚀 Iniciando login con Supabase...");
+  //     // ===== PASO 3: MANEJAR DIFERENTES ESTADOS DEL USUARIO =====
 
-    //     // ===== PASO 1: AUTENTICACIÓN CON SUPABASE AUTH =====
-    //     const { data: authData, error: authError } =
-    //       await supabase.auth.signInWithPassword({
-    //         email: userLogin.email,
-    //         password: userLogin.password,
-    //       });
+  //     // CASO 1: Usuario NO existe - Redirigir a completar perfil
+  //     if (!sessionData.exists || sessionData.needs_profile_completion) {
+  //       toast.info("Completa tu perfil para continuar", {
+  //         position: "bottom-right",
+  //       });
 
-    //     if (authError) throw new Error(authError.message);
-    //     if (!authData.session) throw new Error("No se pudo establecer la sesión");
+  //       // Guardar ID temporal en localStorage para usar en complete-profile
+  //       localStorage.setItem("temp_user_id", authData.user.id);
+  //       localStorage.setItem("temp_user_email", authData.user.email || "");
 
-    //     console.log("✅ Autenticación exitosa");
+  //       router.push("/complete-profile");
+  //       return;
+  //     }
 
-    //     // ===== PASO 2: VERIFICAR SI USUARIO EXISTE EN LPS_ERP_LATAM =====
-    //     const sessionData = await authService.checkUserSession(authData.user.id);
+  //     // CASO 2: Usuario existe pero está PENDIENTE de aprobación
+  //     if (sessionData.status === "pending") {
+  //       toast.warning(
+  //         sessionData.message ||
+  //           "Tu cuenta está pendiente de aprobación. Contacta al administrador.",
+  //         {
+  //           position: "bottom-right",
+  //           autoClose: 5000,
+  //         }
+  //       );
+  //       await authService.logout();
+  //       setIsLoading(false);
+  //       return;
+  //     }
 
-    //     console.log("📦 Datos de sesión:", sessionData);
+  //     // CASO 3: Usuario INACTIVO o SUSPENDIDO
+  //     if (
+  //       sessionData.status === "inactive" ||
+  //       sessionData.status === "suspended"
+  //     ) {
+  //       toast.error(
+  //         sessionData.message || `Tu cuenta está ${sessionData.status}.`,
+  //         {
+  //           position: "bottom-right",
+  //         }
+  //       );
+  //       await authService.logout();
+  //       setIsLoading(false);
+  //       return;
+  //     }
 
-    //     // ===== PASO 3: MANEJAR DIFERENTES ESTADOS DEL USUARIO =====
+  //     // CASO 4: Usuario sin ROL asignado
+  //     if (sessionData.status === "no_role") {
+  //       toast.warning(
+  //         "Usuario sin rol asignado. Contacta al administrador.",
+  //         {
+  //           position: "bottom-right",
+  //         }
+  //       );
+  //       await authService.logout();
+  //       setIsLoading(false);
+  //       return;
+  //     }
 
-    //     // CASO 1: Usuario NO existe - Redirigir a completar perfil
-    //     if (!sessionData.exists || sessionData.needs_profile_completion) {
-    //       toast.info("Completa tu perfil para continuar", {
-    //         position: "bottom-right",
-    //       });
+  //     // ===== PASO 4: USUARIO ACTIVO - CARGAR DATOS COMPLETOS =====
+  //     const userData = sessionData.user!;
 
-    //       // Guardar ID temporal en localStorage para usar en complete-profile
-    //       localStorage.setItem("temp_user_id", authData.user.id);
-    //       localStorage.setItem("temp_user_email", authData.user.email || "");
+  //     // Mapear permisos para el drawer
+  //     const drawerRoutes: DrawerRoute[] =
+  //       userData.role.permissions?.map((perm, index) => ({
+  //         id: index + 1,
+  //         label: perm.route_name,
+  //         path: perm.route,
+  //         icon: perm.route_icon || "folder",
+  //       })) || [];
 
-    //       router.push("/complete-profile");
-    //       return;
-    //     }
+  //     // Guardar en Redux
+  //     dispatch(
+  //       setUser({
+  //         id: parseInt(userData.user_id),
+  //         name: userData.full_name,
+  //         email: userData.email,
+  //         email_verified_at: authData.user.email_confirmed_at || null,
+  //         created_at: authData.user.created_at || new Date().toISOString(),
+  //         updated_at: new Date().toISOString(),
+  //         tenant_id: parseInt(userData.tenant_id),
+  //         role_id: parseInt(userData.role.role_id),
+  //         defaultPath: drawerRoutes[0]?.path || "/dashboard",
+  //         role: {
+  //           id: parseInt(userData.role.role_id),
+  //           tenant_id: parseInt(userData.tenant_id),
+  //           name: userData.role.role_name,
+  //           description: userData.role.role_description || "",
+  //           created_at: new Date().toISOString(),
+  //           updated_at: null,
+  //         },
+  //         person: null,
+  //         token: authData.session.access_token,
+  //         refreshToken: authData.session.refresh_token,
+  //       })
+  //     );
 
-    //     // CASO 2: Usuario existe pero está PENDIENTE de aprobación
-    //     if (sessionData.status === "pending") {
-    //       toast.warning(
-    //         sessionData.message ||
-    //           "Tu cuenta está pendiente de aprobación. Contacta al administrador.",
-    //         {
-    //           position: "bottom-right",
-    //           autoClose: 5000,
-    //         }
-    //       );
-    //       await authService.logout();
-    //       setIsLoading(false);
-    //       return;
-    //     }
+  //     dispatch(setRoutes(drawerRoutes));
 
-    //     // CASO 3: Usuario INACTIVO o SUSPENDIDO
-    //     if (
-    //       sessionData.status === "inactive" ||
-    //       sessionData.status === "suspended"
-    //     ) {
-    //       toast.error(
-    //         sessionData.message || `Tu cuenta está ${sessionData.status}.`,
-    //         {
-    //           position: "bottom-right",
-    //         }
-    //       );
-    //       await authService.logout();
-    //       setIsLoading(false);
-    //       return;
-    //     }
+  //     toast.success(`Bienvenido ${userData.full_name}`, {
+  //       position: "bottom-right",
+  //     });
 
-    //     // CASO 4: Usuario sin ROL asignado
-    //     if (sessionData.status === "no_role") {
-    //       toast.warning(
-    //         "Usuario sin rol asignado. Contacta al administrador.",
-    //         {
-    //           position: "bottom-right",
-    //         }
-    //       );
-    //       await authService.logout();
-    //       setIsLoading(false);
-    //       return;
-    //     }
+  //     // Redirigir al dashboard
+  //     router.push(drawerRoutes[0]?.path || "/dashboard");
+  //   } catch (error: any) {
+  //     console.error("❌ Error en login:", error);
 
-    //     // ===== PASO 4: USUARIO ACTIVO - CARGAR DATOS COMPLETOS =====
-    //     const userData = sessionData.user!;
+  //     let errorMessage = "Ocurrió un error al iniciar sesión";
 
-    //     // Mapear permisos para el drawer
-    //     const drawerRoutes: DrawerRoute[] =
-    //       userData.role.permissions?.map((perm, index) => ({
-    //         id: index + 1,
-    //         label: perm.route_name,
-    //         path: perm.route,
-    //         icon: perm.route_icon || "folder",
-    //       })) || [];
+  //     if (error.message.includes("Invalid login credentials")) {
+  //       errorMessage =
+  //         "Credenciales inválidas. Verifica tu correo y contraseña.";
+  //     } else if (error.message.includes("Email not confirmed")) {
+  //       errorMessage =
+  //         "Por favor, confirma tu correo electrónico antes de iniciar sesión.";
+  //     } else if (error.message) {
+  //       errorMessage = error.message;
+  //     }
 
-    //     // Guardar en Redux
-    //     dispatch(
-    //       setUser({
-    //         id: parseInt(userData.user_id),
-    //         name: userData.full_name,
-    //         email: userData.email,
-    //         email_verified_at: authData.user.email_confirmed_at || null,
-    //         created_at: authData.user.created_at || new Date().toISOString(),
-    //         updated_at: new Date().toISOString(),
-    //         tenant_id: parseInt(userData.tenant_id),
-    //         role_id: parseInt(userData.role.role_id),
-    //         defaultPath: drawerRoutes[0]?.path || "/dashboard",
-    //         role: {
-    //           id: parseInt(userData.role.role_id),
-    //           tenant_id: parseInt(userData.tenant_id),
-    //           name: userData.role.role_name,
-    //           description: userData.role.role_description || "",
-    //           created_at: new Date().toISOString(),
-    //           updated_at: null,
-    //         },
-    //         person: null,
-    //         token: authData.session.access_token,
-    //         refreshToken: authData.session.refresh_token,
-    //       })
-    //     );
-
-    //     dispatch(setRoutes(drawerRoutes));
-
-    //     toast.success(`Bienvenido ${userData.full_name}`, {
-    //       position: "bottom-right",
-    //     });
-
-    //     // Redirigir al dashboard
-    //     router.push(drawerRoutes[0]?.path || "/dashboard");
-    //   } catch (error: any) {
-    //     console.error("❌ Error en login:", error);
-
-    //     let errorMessage = "Ocurrió un error al iniciar sesión";
-
-    //     if (error.message.includes("Invalid login credentials")) {
-    //       errorMessage =
-    //         "Credenciales inválidas. Verifica tu correo y contraseña.";
-    //     } else if (error.message.includes("Email not confirmed")) {
-    //       errorMessage =
-    //         "Por favor, confirma tu correo electrónico antes de iniciar sesión.";
-    //     } else if (error.message) {
-    //       errorMessage = error.message;
-    //     }
-
-    //     toast.error(errorMessage, {
-    //       position: "bottom-right",
-    //     });
-    //   } finally {
-    //     setIsLoading(false);
-    //   }
-    // };
+  //     toast.error(errorMessage, {
+  //       position: "bottom-right",
+  //     });
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
 
 
@@ -1061,7 +1067,7 @@
   //     console.log("📦 Datos de sesión:", sessionData);
 
   //     // ... resto del código de manejo de estados igual ...
-      
+
   //   } catch (error: any) {
   //     console.error("❌ Error en login:", error);
   //     // ... manejo de errores igual ...
@@ -1070,379 +1076,379 @@
   //   }
   // };
 
-    const handleChange = (
-      field: "email" | "password",
-      value: string | number
-    ) => {
-      setUserLogin((prev) => ({
-        ...prev,
-        [field]: String(value),
-      }));
-    };
+  const handleChange = (
+    field: "email" | "password",
+    value: string | number
+  ) => {
+    setUserLogin((prev) => ({
+      ...prev,
+      [field]: String(value),
+    }));
+  };
 
-    return (
+  return (
+    <Box
+      sx={{
+        position: "fixed",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        overflow: "hidden",
+        backgroundImage: 'url("/loginBG.jpg")',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      {/* Overlay */}
       <Box
         sx={{
-          position: "fixed",
+          position: "absolute",
           inset: 0,
+          background: {
+            xs: "linear-gradient(to bottom, rgba(37, 99, 235, 0.4), transparent)",
+            lg: "linear-gradient(to right, rgba(37, 99, 235, 0.4), transparent, rgba(15, 23, 42, 0.5))",
+          },
+        }}
+      />
+
+      {/* Grid Layout */}
+      <Box
+        sx={{
+          position: "relative",
+          zIndex: 10,
           width: "100%",
           height: "100%",
-          overflow: "hidden",
-          backgroundImage: 'url("/loginBG.jpg")',
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          display: "flex",
+          flexDirection: { xs: "column", lg: "row" },
         }}
       >
-        {/* Overlay */}
+        {/* COLUMNA IZQUIERDA */}
         <Box
           sx={{
-            position: "absolute",
-            inset: 0,
-            background: {
-              xs: "linear-gradient(to bottom, rgba(37, 99, 235, 0.4), transparent)",
-              lg: "linear-gradient(to right, rgba(37, 99, 235, 0.4), transparent, rgba(15, 23, 42, 0.5))",
-            },
-          }}
-        />
-
-        {/* Grid Layout */}
-        <Box
-          sx={{
-            position: "relative",
-            zIndex: 10,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            flexDirection: { xs: "column", lg: "row" },
+            display: { xs: "none", lg: "flex" },
+            flex: 1,
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            px: 6,
+            color: "white",
           }}
         >
-          {/* COLUMNA IZQUIERDA */}
-          <Box
-            sx={{
-              display: { xs: "none", lg: "flex" },
-              flex: 1,
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              px: 6,
-              color: "white",
-            }}
-          >
-            <Box sx={{ maxWidth: "600px" }}>
-              <Typography
-                variant="h1"
+          <Box sx={{ maxWidth: "600px" }}>
+            <Typography
+              variant="h1"
+              sx={{
+                fontSize: { lg: "3.5rem", xl: "5rem" },
+                fontWeight: "bold",
+                mb: 6,
+                lineHeight: 1.2,
+              }}
+            >
+              <Box
+                component="span"
                 sx={{
-                  fontSize: { lg: "3.5rem", xl: "5rem" },
-                  fontWeight: "bold",
-                  mb: 6,
-                  lineHeight: 1.2,
+                  background:
+                    "linear-gradient(to right, #ffffff, #a5f3fc, #ffffff)",
+                  backgroundClip: "text",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  filter: "drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))",
                 }}
               >
-                <Box
-                  component="span"
-                  sx={{
-                    background:
-                      "linear-gradient(to right, #ffffff, #a5f3fc, #ffffff)",
-                    backgroundClip: "text",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    filter: "drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))",
-                  }}
-                >
-                  Innovation
-                </Box>
-                <br />
-                <Box
-                  component="span"
-                  sx={{
-                    background:
-                      "linear-gradient(to right, #ffffff, #a5f3fc, #ffffff)",
-                    backgroundClip: "text",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    filter: "drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))",
-                  }}
-                >
-                  Obsessed
-                </Box>
-              </Typography>
-
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {[
-                  {
-                    icon: <CheckCircle />,
-                    title: "+13 años de experiencia",
-                    subtitle: "En despliegue de redes",
-                  },
-                  {
-                    icon: <Public />,
-                    title: "Presencia internacional",
-                    subtitle: "3 continentes",
-                  },
-                  {
-                    icon: <Security />,
-                    title: "Plataforma segura",
-                    subtitle: "Conexión cifrada 24/7",
-                  },
-                ].map((feature, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      backdropFilter: "blur(8px)",
-                      backgroundColor: "rgba(255, 255, 255, 0.05)",
-                      p: 2,
-                      borderRadius: 3,
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
-                      transition: "all 0.3s ease",
-                      "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.1)" },
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: "50%",
-                        background:
-                          "linear-gradient(135deg, rgba(6, 182, 212, 0.3), rgba(59, 130, 246, 0.3))",
-                        backdropFilter: "blur(8px)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        border: "1px solid rgba(103, 232, 249, 0.4)",
-                        color: "#67e8f9",
-                      }}
-                    >
-                      {feature.icon}
-                    </Box>
-                    <Box>
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          fontWeight: 600,
-                          filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                        }}
-                      >
-                        {feature.title}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: "rgba(255, 255, 255, 0.7)",
-                          fontSize: "0.75rem",
-                        }}
-                      >
-                        {feature.subtitle}
-                      </Typography>
-                    </Box>
-                  </Box>
-                ))}
+                Innovation
               </Box>
-            </Box>
-          </Box>
+              <br />
+              <Box
+                component="span"
+                sx={{
+                  background:
+                    "linear-gradient(to right, #ffffff, #a5f3fc, #ffffff)",
+                  backgroundClip: "text",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  filter: "drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))",
+                }}
+              >
+                Obsessed
+              </Box>
+            </Typography>
 
-          {/* COLUMNA DERECHA - FORM */}
-          <Box
-            sx={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              px: { xs: 2, lg: 6 },
-            }}
-          >
-            <Box sx={{ width: "100%", maxWidth: "448px" }}>
-              {/* ... Tu card de login existente ... */}
-              <Box component="form" onSubmit={handleLogin}>
-                <Box>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontSize: "0.875rem",
-                          fontWeight: 600,
-                          color: "rgba(255, 255, 255, 0.9)",
-                          mb: 1,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        Correo Electrónico
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        type="email"
-                        value={userLogin.email}
-                        onChange={(e) => handleChange("email", e.target.value)}
-                        placeholder="usuario@lpsgrupo.com"
-                        required
-                        disabled={isLoading}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Email sx={{ color: "#67e8f9" }} />
-                            </InputAdornment>
-                          ),
-                        }}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            backgroundColor: "rgba(255, 255, 255, 0.1)",
-                            borderRadius: 3,
-                            color: "white",
-                            "& fieldset": {
-                              borderColor: "rgba(255, 255, 255, 0.2)",
-                            },
-                            "&:hover fieldset": {
-                              borderColor: "rgba(255, 255, 255, 0.3)",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#67e8f9",
-                              borderWidth: 2,
-                            },
-                          },
-                          "& .MuiOutlinedInput-input::placeholder": {
-                            color: "rgba(255, 255, 255, 0.5)",
-                            opacity: 1,
-                          },
-                        }}
-                      />
-                    </Box>
-
-                    <Box>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontSize: "0.875rem",
-                          fontWeight: 600,
-                          color: "rgba(255, 255, 255, 0.9)",
-                          mb: 1,
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        Contraseña
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        type="password"
-                        value={userLogin.password}
-                        onChange={(e) => handleChange("password", e.target.value)}
-                        placeholder="••••••••"
-                        required
-                        disabled={isLoading}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Lock sx={{ color: "#67e8f9" }} />
-                            </InputAdornment>
-                          ),
-                        }}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            backgroundColor: "rgba(255, 255, 255, 0.1)",
-                            borderRadius: 3,
-                            color: "white",
-                            "& fieldset": {
-                              borderColor: "rgba(255, 255, 255, 0.2)",
-                            },
-                            "&:hover fieldset": {
-                              borderColor: "rgba(255, 255, 255, 0.3)",
-                            },
-                            "&.Mui-focused fieldset": {
-                              borderColor: "#67e8f9",
-                              borderWidth: 2,
-                            },
-                          },
-                          "& .MuiOutlinedInput-input::placeholder": {
-                            color: "rgba(255, 255, 255, 0.5)",
-                            opacity: 1,
-                          },
-                        }}
-                      />
-                    </Box>
-
-                    <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                      <Typography
-                        component="a"
-                        href="/forgotpassword"
-                        sx={{
-                          fontSize: "0.875rem",
-                          color: "#67e8f9",
-                          fontWeight: 500,
-                          textDecoration: "none",
-                          pointerEvents: isLoading ? "none" : "auto",
-                          opacity: isLoading ? 0.5 : 1,
-                          "&:hover": {
-                            color: "#a5f3fc",
-                            textDecoration: "underline",
-                          },
-                        }}
-                      >
-                        ¿Olvidaste tu contraseña?
-                      </Typography>
-                    </Box>
-
-                <Button
-                  type="submit"
-                  fullWidth
-                  disabled={isLoading}
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {[
+                {
+                  icon: <CheckCircle />,
+                  title: "+13 años de experiencia",
+                  subtitle: "En despliegue de redes",
+                },
+                {
+                  icon: <Public />,
+                  title: "Presencia internacional",
+                  subtitle: "3 continentes",
+                },
+                {
+                  icon: <Security />,
+                  title: "Plataforma segura",
+                  subtitle: "Conexión cifrada 24/7",
+                },
+              ].map((feature, index) => (
+                <Box
+                  key={index}
                   sx={{
-                    position: "relative",
-                    overflow: "hidden",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    backdropFilter: "blur(8px)",
+                    backgroundColor: "rgba(255, 255, 255, 0.05)",
+                    p: 2,
                     borderRadius: 3,
-                    "&::before": {
-                      content: '""',
-                      position: "absolute",
-                      inset: 0,
-                      background:
-                        "linear-gradient(to right, #06b6d4, #3b82f6, #06b6d4)",
-                    },
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    transition: "all 0.3s ease",
+                    "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.1)" },
                   }}
                 >
                   <Box
                     sx={{
-                      position: "relative",
+                      width: 48,
+                      height: 48,
+                      borderRadius: "50%",
+                      background:
+                        "linear-gradient(135deg, rgba(6, 182, 212, 0.3), rgba(59, 130, 246, 0.3))",
+                      backdropFilter: "blur(8px)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: 1,
-                      py: 2,
+                      border: "1px solid rgba(103, 232, 249, 0.4)",
+                      color: "#67e8f9",
                     }}
                   >
-                    {isLoading ? (
-                      <>
-                        <CircularProgress size={20} sx={{ color: "white" }} />
-                        <Typography
-                          sx={{
-                            color: "white",
-                            fontWeight: "bold",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          Iniciando...
-                        </Typography>
-                      </>
-                    ) : (
-                      <>
-                        <Typography
-                          sx={{
-                            color: "white",
-                            fontWeight: "bold",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          Iniciar Sesión
-                        </Typography>
-                        <ArrowForward sx={{ color: "white" }} />
-                      </>
-                    )}
+                    {feature.icon}
                   </Box>
-                </Button>
+                  <Box>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 600,
+                        filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                      }}
+                    >
+                      {feature.title}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "rgba(255, 255, 255, 0.7)",
+                        fontSize: "0.75rem",
+                      }}
+                    >
+                      {feature.subtitle}
+                    </Typography>
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        </Box>
+
+        {/* COLUMNA DERECHA - FORM */}
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            px: { xs: 2, lg: 6 },
+          }}
+        >
+          <Box sx={{ width: "100%", maxWidth: "448px" }}>
+            {/* ... Tu card de login existente ... */}
+            <Box component="form" onSubmit={handleLogin}>
+              <Box>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    color: "rgba(255, 255, 255, 0.9)",
+                    mb: 1,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  Correo Electrónico
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="email"
+                  value={userLogin.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  placeholder="usuario@lpsgrupo.com"
+                  required
+                  disabled={isLoading}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Email sx={{ color: "#67e8f9" }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                      borderRadius: 3,
+                      color: "white",
+                      "& fieldset": {
+                        borderColor: "rgba(255, 255, 255, 0.2)",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "rgba(255, 255, 255, 0.3)",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#67e8f9",
+                        borderWidth: 2,
+                      },
+                    },
+                    "& .MuiOutlinedInput-input::placeholder": {
+                      color: "rgba(255, 255, 255, 0.5)",
+                      opacity: 1,
+                    },
+                  }}
+                />
               </Box>
+
+              <Box>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    color: "rgba(255, 255, 255, 0.9)",
+                    mb: 1,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  Contraseña
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="password"
+                  value={userLogin.password}
+                  onChange={(e) => handleChange("password", e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  disabled={isLoading}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Lock sx={{ color: "#67e8f9" }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                      borderRadius: 3,
+                      color: "white",
+                      "& fieldset": {
+                        borderColor: "rgba(255, 255, 255, 0.2)",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "rgba(255, 255, 255, 0.3)",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#67e8f9",
+                        borderWidth: 2,
+                      },
+                    },
+                    "& .MuiOutlinedInput-input::placeholder": {
+                      color: "rgba(255, 255, 255, 0.5)",
+                      opacity: 1,
+                    },
+                  }}
+                />
+              </Box>
+
+              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                <Typography
+                  component="a"
+                  href="/forgotpassword"
+                  sx={{
+                    fontSize: "0.875rem",
+                    color: "#67e8f9",
+                    fontWeight: 500,
+                    textDecoration: "none",
+                    pointerEvents: isLoading ? "none" : "auto",
+                    opacity: isLoading ? 0.5 : 1,
+                    "&:hover": {
+                      color: "#a5f3fc",
+                      textDecoration: "underline",
+                    },
+                  }}
+                >
+                  ¿Olvidaste tu contraseña?
+                </Typography>
+              </Box>
+
+              <Button
+                type="submit"
+                fullWidth
+                disabled={isLoading}
+                sx={{
+                  position: "relative",
+                  overflow: "hidden",
+                  borderRadius: 3,
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    inset: 0,
+                    background:
+                      "linear-gradient(to right, #06b6d4, #3b82f6, #06b6d4)",
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 1,
+                    py: 2,
+                  }}
+                >
+                  {isLoading ? (
+                    <>
+                      <CircularProgress size={20} sx={{ color: "white" }} />
+                      <Typography
+                        sx={{
+                          color: "white",
+                          fontWeight: "bold",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Iniciando...
+                      </Typography>
+                    </>
+                  ) : (
+                    <>
+                      <Typography
+                        sx={{
+                          color: "white",
+                          fontWeight: "bold",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Iniciar Sesión
+                      </Typography>
+                      <ArrowForward sx={{ color: "white" }} />
+                    </>
+                  )}
+                </Box>
+              </Button>
             </Box>
           </Box>
         </Box>
       </Box>
-    );
-  }
+    </Box>
+  );
+}

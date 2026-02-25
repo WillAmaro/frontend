@@ -1,6 +1,6 @@
 "use client";
 
-import { SetStateAction, useState } from "react";
+import { SetStateAction, use, useState } from "react";
 import { useEffect } from "react";
 import {
   Box,
@@ -48,6 +48,11 @@ import SelectBase from "@/src/components/base/SelectBase";
 import { toast } from "react-toastify";
 import { CatalogService } from "@/src/services/api/CatalogService";
 import { CatalogDTO } from "@/src/types/Catalog.types";
+import { useGridSelector } from "@mui/x-data-grid";
+import { useSelector } from "react-redux";
+import { RootState } from "@/src/store/Store";
+import { GridColDef } from "@mui/x-data-grid";
+import CustomDataGrid from "@/src/components/base/CustomDataGrid";
 // Datos de ejemplo
 //const regionesDisponibles = ["Lima", "Arequipa", "Cusco", "Trujillo", "Piura"];
 
@@ -89,14 +94,14 @@ export default function SolicitudAbastecimiento() {
   const [fechaEntregaSolicitada, setFechaEntregaSolicitada] = useState("");
   const [region, setRegion] = useState<string | null>(null);
   const [notas, setNotas] = useState("");
-
+  const company = useSelector((state: RootState) => state.companies.company)
+  console.log('pintame company::', company)
   //Estados de filtros fechas inicio - fin
   const [valueInit, setValueInit] = useState<Dayjs | null>(dayjs());
   const [valueFin, setValueFin] = useState<Dayjs | null>(dayjs());
-  console.log(valueInit, "testing-valueInit");
   //Estados de filtros fecha de entrega solicitada
   const [valueEntrega, setValueEntrega] = useState<Dayjs | null>(dayjs());
-
+  const [projectOptions, setProjectOptions] = useState<any[]>([])
   // Estados para seleccionar empresa y proyecto
   const [valueEmpresaSeleccionada, setEmpresaSeleccionada] = useState<
     string | number | null
@@ -110,21 +115,6 @@ export default function SolicitudAbastecimiento() {
     projects: []
   });
 
-  // useEffect(() => {
-  //   // Esto normalmente vendría de la API
-  //   const res = {
-  //     EMPRESAS_REGISTRADAS: [
-  //       { label: "Empresa A", value: 1 },
-  //       { label: "Empresa B", value: 2 },
-  //     ],
-  //     PROYECTOS: [
-  //       { label: "Proyecto X", value: 101 },
-  //       { label: "Proyecto Y", value: 102 },
-  //     ],
-  //   };
-
-  //   setCatalogos(res);
-  // }, []);
 
   useEffect(() => {
     const loadCatalogs = async () => {
@@ -149,10 +139,23 @@ export default function SolicitudAbastecimiento() {
     value: company.id
   }));
 
-  const projectOptions = catalogos.projects.map(project => ({
-    label: project.name,
-    value: project.id
-  }));
+  const handleProjectOptions = (value: number) => {
+    const options = catalogos.projects
+      .filter(project =>
+        String(project.companyId) === String(value)
+      )
+      .map(project => ({
+        label: project.name,
+        value: project.id
+      }));
+    setProjectOptions(options)
+  }
+
+
+  useEffect(() => {
+    handleProjectOptions(company)
+    setProyectoSeleccionado(null)
+  }, [company])
 
   // Estado principal para almacenar toda la respuesta del API
   const [requestDto, setRequestDto] = useState<SupplyRequestDto | null>(null);
@@ -189,6 +192,96 @@ export default function SolicitudAbastecimiento() {
       limpiarDatos();
     }
   };
+
+
+
+  const columns: GridColDef[] = [
+    {
+      field: "itemCode",
+      headerName: "Código",
+      flex: 1,
+      renderCell: (params) => (
+        <strong>{params.value}</strong>
+      ),
+    },
+    {
+      field: "itemName",
+      headerName: "Descripción",
+      flex: 2,
+    },
+    {
+      field: "quantityUsedInPeriod",
+      headerName: "Consumo Período",
+      flex: 1,
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <Chip
+          label={params.value}
+          size="small"
+          color="info"
+          variant="outlined"
+        />
+      ),
+    },
+    {
+      field: "requestedQuantity",
+      headerName: "Cantidad Solicitada",
+      type: "number",
+      flex: 1,
+      editable: true, // 🔥 ACTIVAMOS EDICIÓN
+    },
+    {
+      field: "unitPrice",
+      headerName: "Precio Unit.",
+      flex: 1,
+      align: "right",
+      headerAlign: "right",
+      valueFormatter: (params: any) =>
+        `S/. ${Number(params?.value || 0).toFixed(2)}`,
+    },
+    {
+      field: "totalPrice",
+      headerName: "Total",
+      flex: 1,
+      align: "right",
+      headerAlign: "right",
+      valueGetter: (params: any) =>
+        (params?.row?.requestedQuantity || 0) *
+        (params?.row?.unitPrice || 0),
+      valueFormatter: (params: any) =>
+        `S/. ${Number(params?.value || 0).toFixed(2)}`,
+    },
+    {
+      field: "isUrgent",
+      headerName: "Urgente",
+      flex: 1,
+      align: "center",
+      headerAlign: "center",
+      editable: true,
+      type: "boolean",
+    },
+  ];
+
+
+  const processRowUpdate = (newRow: any, oldRow: any) => {
+    const updatedRow = {
+      ...newRow,
+      totalPrice:
+        (newRow.requestedQuantity || 0) *
+        (newRow.unitPrice || 0),
+    };
+
+    setEquiposAPI((prev) =>
+      prev.map((row) =>
+        row.id === updatedRow.id ? updatedRow : row
+      )
+    );
+
+    return updatedRow;
+  };
+
+
 
   const limpiarDatos = () => {
     setMaterialesAPI([]);
@@ -252,24 +345,24 @@ export default function SolicitudAbastecimiento() {
     setShowSuccessSubmit(false);
 
     try {
-      const response = await fetch(`${API_URL}/api/supply-requests/generate`, {
+      const response = await fetch(`${API_URL}/api/hub-supply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           //proyect id 
-          hubId: HUB_ID,
-          periodStartDate: valueInit,
-          periodEndDate: valueFin,
-          periodValueEntrega: valueEntrega,
-          tenantId: valueEmpresaSeleccionada,
+          hubId: 1,
+          periodStartDate: valueInit?.format("YYYY-MM-DD"),
+          periodEndDate: valueFin?.format("YYYY-MM-DD"),
+          periodValueEntrega: valueEntrega?.format("YYYY-MM-DD"),
+          tenantId: company,
           projectId: valueProyectoSeleccionado,
-          requestedBy: USER_ID,
+          requestedBy: 1,
           notes:
             notas ||
             `Solicitud generada para período ${valueInit} - ${valueFin}`,
-          requestedDeliveryDate: valueEntrega
+          requestedDeliveryDate: valueEntrega?.format("YYYY-MM-DD"),
         }),
       });
 
@@ -743,9 +836,8 @@ export default function SolicitudAbastecimiento() {
             sx={{
               display: "flex",
               gap: 1,
-              justifyContent:"initial",
+              justifyContent: "initial",
               flexWrap: "wrap",
-              // alignItems: "flex-end",
             }}
           >
             <Box sx={{ flex: "1 1 200px" }}>
@@ -825,7 +917,7 @@ export default function SolicitudAbastecimiento() {
               />*/}
             </Box>
 
-            <Box sx={{ flex: "1 1 200px" }}>
+            <Box sx={{ flex: "0 0 245px" }}>
               {/* <Typography
                 variant="body2"
                 color="text.secondary"
@@ -859,21 +951,28 @@ export default function SolicitudAbastecimiento() {
                 // //placeholder="Selecciona empresa"
                 // />
 
-                  <SelectBase
-                label="Selecciona proyecto"
-                value={valueProyectoSeleccionado ?? ""}
-                onChange={setProyectoSeleccionado}
-                options={projectOptions}
-                fullWidth
-                size="medium"
-              //placeholder="Selecciona proyecto"
-              />
+                <SelectBase
+                  label="Selecciona proyecto"
+                  value={valueProyectoSeleccionado ?? ""}
+                  onChange={setProyectoSeleccionado}
+                  options={[{ label: "Seleccionar un proyecto", value: 0 }, ...projectOptions]}
+                  fullWidth
+                  size="medium"
+                //placeholder="Selecciona proyecto"
+                />
               }
 
               {/* Select Proyectos */}
             </Box>
-         
 
+
+            <Box
+              sx={{
+                flexShrink: 0,
+                ml: { xs: 0, md: 6 },
+                mt: { xs: 10, md: 0 },
+              }}
+            ></Box>
             <ButtonBase
               onClick={handleGenerarSolicitud}
               startIcon={
@@ -1065,9 +1164,9 @@ export default function SolicitudAbastecimiento() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {materialesAPI.map((material) => (
+                      {materialesAPI.map((material, index) => (
                         <TableRow
-                          key={material.id}
+                          key={`${material.id} - ${index}`}
                           sx={{
                             "&:hover": { bgcolor: "action.hover" },
                             bgcolor: material.isUrgent ? "#fff3e0" : "inherit",
@@ -1364,7 +1463,17 @@ export default function SolicitudAbastecimiento() {
                   />
                 </Box>
 
-                <TableContainer
+                <CustomDataGrid
+                  columns={columns}
+                  localRows={equiposAPI}
+                  serverSide={false}
+                  search={""}
+                  onSearch={() => { }}
+                  editMode="cell"
+                  processRowUpdate={processRowUpdate}
+                />
+
+                {/* <TableContainer
                   component={Paper}
                   sx={{
                     maxHeight: 400,
@@ -1433,9 +1542,9 @@ export default function SolicitudAbastecimiento() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {equiposAPI.map((equipo) => (
+                      {equiposAPI.map((equipo,index) => (
                         <TableRow
-                          key={equipo.id}
+                          key={`${equipo.id} - ${index}`}
                           sx={{
                             "&:hover": { bgcolor: "action.hover" },
                             bgcolor: equipo.isUrgent ? "#fff3e0" : "inherit",
@@ -1485,12 +1594,12 @@ export default function SolicitudAbastecimiento() {
                           </TableCell>
                           <TableCell align="right">
                             <Typography variant="body2">
-                              S/. {equipo.unitPrice.toFixed(2)}
+                              S/. {equipo.unitPrice?.toFixed(2)}
                             </Typography>
                           </TableCell>
                           <TableCell align="right">
                             <Typography variant="body2" fontWeight={600}>
-                              S/. {equipo.totalPrice.toFixed(2)}
+                              S/. {equipo.totalPrice?.toFixed(2)}
                             </Typography>
                           </TableCell>
                           <TableCell align="center">
@@ -1506,7 +1615,7 @@ export default function SolicitudAbastecimiento() {
                       ))}
                     </TableBody>
                   </Table>
-                </TableContainer>
+                </TableContainer> */}
               </Box>
             )}
 

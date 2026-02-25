@@ -27,6 +27,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import MenuIcon from "@mui/icons-material/Menu";
 import { DrawerMenu } from "../components/Drawer";
 import SettingsIcon from "@mui/icons-material/Settings";
+import SelectBase from "../../base/SelectBase";
+import { setCompanies, setCompany } from "@/src/store/slices/CompanySlices";
 
 interface Props {
   window?: () => Window;
@@ -45,7 +47,7 @@ export default function DrawerAppBar(props: Props) {
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch<AppDispatch>();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-
+  const companies = useSelector((state: RootState) => state.companies)
   // Usar useMediaQuery para detectar el tamaño de pantalla
   const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
 
@@ -292,20 +294,29 @@ export default function DrawerAppBar(props: Props) {
             {/* Profile Menu */}
             <div
               className="flex items-center gap-3 cursor-pointer"
-              onClick={handleProfileMenuOpen}
             >
               {/* Información del usuario - Solo visible en sm y superior */}
-              <div className="hidden sm:block text-right">
+              <div>
+                <SelectBase label={""} value={companies.company} onChange={
+                  (e:any)=>dispatch(setCompany(e))
+                } options={companies?.companies.map((com: any) => {
+                  return {
+                    label: com.reasonSocial,
+                    value: com.id
+                  };
+                })} />
+              </div>
+              {/* <div className="hidden sm:block text-right">
                 <Typography
                   variant="body2"
                   sx={{ fontWeight: 600, color: "#374151" }}
                 >
-                  {user.name || "Usuario"}
+                  { "Usuario"}
                 </Typography>
                 <Typography variant="caption" sx={{ color: "#6b7280" }}>
                   {user.role?.name || "Usuario"}
                 </Typography>
-              </div>
+              </div> */}
               <Avatar
                 sx={{
                   width: 36,
@@ -314,6 +325,8 @@ export default function DrawerAppBar(props: Props) {
                   background:
                     "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                 }}
+                              onClick={handleProfileMenuOpen}
+
                 src="/avatar.png"
               >
                 {user.name?.charAt(0)}

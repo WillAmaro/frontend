@@ -5,17 +5,18 @@ import storage from "redux-persist/lib/storage"; // localStorage
 
 import userReducer from "./slices/UserSlice";     // 👈 slice de usuario
 import drawerReducer from "./slices/DrawerSlices"; // 👈 slice del drawer
-
+import companyReducer from "./slices/CompanySlices";
 // Configuración de persistencia
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["user"], // 👈 solo persistimos el usuario con token
+  whitelist: ["user","companies"], // 👈 solo persistimos el usuario con token
 };
 
 // Reducers combinados
 const rootReducer = combineReducers({
   user: userReducer,
+  companies:companyReducer,
   drawer: drawerReducer, // 👈 el drawer vive en memoria (no persistido)
 });
 
