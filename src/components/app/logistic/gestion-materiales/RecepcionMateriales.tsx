@@ -2855,6 +2855,7 @@ export default function RecepcionMateriales() {
                       <CustomDataGrid
                         columns={columnasMateriales}
                         localRows={materialesFiltrados}
+                        checkboxSelection={true}
                         serverSide={false}
                         search=""
                         onSearch={() => {}}
