@@ -2366,8 +2366,9 @@ export default function SolicitudAbastecimiento() {
 
   useEffect(() => {
     const options = catalogos.projects
-      .filter(p => String(p.companyId) === String(company))
+      .filter(p => p.companyIds.includes(Number(company)))
       .map(p => ({ label: p.name, value: p.id }));
+
     setProjectOptions(options);
     setProyectoSeleccionado(null);
   }, [company, catalogos]);
@@ -2396,25 +2397,87 @@ export default function SolicitudAbastecimiento() {
   ];
 
   // ── Handlers de actualización de filas ───────────────────────────────────
+  // const processRowUpdateMaterial = (newRow: any) => {
+  //   const updatedRow = { ...newRow, totalPrice: (newRow.requestedQuantity || 0) * (newRow.unitPrice || 0), pendingQuantity: (newRow.requestedQuantity || 0) - (newRow.deliveredQuantity || 0) };
+  //   setMaterialesAPI(prev => prev.map(r => r.id === updatedRow.id ? updatedRow : r));
+  //   if (requestDto) actualizarRequestDto([...materialesAPI.map(r => r.id === updatedRow.id ? updatedRow : r), ...herramientasAPI, ...equiposAPI]);
+  //   return updatedRow;
+  // };
+
+  //   const processRowUpdateTool = (newRow: any) => {
+  //   const updatedRow = { ...newRow, totalPrice: (newRow.requestedQuantity || 0) * (newRow.unitPrice || 0), pendingQuantity: (newRow.requestedQuantity || 0) - (newRow.deliveredQuantity || 0) };
+  //   setHerramientasAPI(prev => prev.map(r => r.id === updatedRow.id ? updatedRow : r));
+  //   if (requestDto) actualizarRequestDto([...materialesAPI, ...herramientasAPI.map(r => r.id === updatedRow.id ? updatedRow : r), ...equiposAPI]);
+  //   return updatedRow;
+  // };
+
+  // const processRowUpdateEquipo = (newRow: any) => {
+  //   const updatedRow = { ...newRow, totalPrice: (newRow.requestedQuantity || 0) * (newRow.unitPrice || 0) };
+  //   setEquiposAPI(prev => prev.map(r => r.id === updatedRow.id ? updatedRow : r));
+  //   return updatedRow;
+  // };
+
   const processRowUpdateMaterial = (newRow: any) => {
-    const updatedRow = { ...newRow, totalPrice: (newRow.requestedQuantity || 0) * (newRow.unitPrice || 0), pendingQuantity: (newRow.requestedQuantity || 0) - (newRow.deliveredQuantity || 0) };
-    setMaterialesAPI(prev => prev.map(r => r.id === updatedRow.id ? updatedRow : r));
-    if (requestDto) actualizarRequestDto([...materialesAPI.map(r => r.id === updatedRow.id ? updatedRow : r), ...herramientasAPI, ...equiposAPI]);
+    const updatedRow = {
+      ...newRow,
+      totalPrice: (newRow.requestedQuantity || 0) * (newRow.unitPrice || 0),
+      pendingQuantity: (newRow.requestedQuantity || 0) - (newRow.deliveredQuantity || 0),
+    };
+
+    // Actualiza el estado
+    setMaterialesAPI(prev => {
+      const nuevosMateriales = prev.map(r => r.id === updatedRow.id ? updatedRow : r);
+
+      // Actualiza requestDto usando los arrays actualizados
+      if (requestDto) {
+        actualizarRequestDto([...nuevosMateriales, ...herramientasAPI, ...equiposAPI]);
+      }
+
+      return nuevosMateriales;
+    });
+
     return updatedRow;
   };
 
   const processRowUpdateTool = (newRow: any) => {
-    const updatedRow = { ...newRow, totalPrice: (newRow.requestedQuantity || 0) * (newRow.unitPrice || 0), pendingQuantity: (newRow.requestedQuantity || 0) - (newRow.deliveredQuantity || 0) };
-    setHerramientasAPI(prev => prev.map(r => r.id === updatedRow.id ? updatedRow : r));
-    if (requestDto) actualizarRequestDto([...materialesAPI, ...herramientasAPI.map(r => r.id === updatedRow.id ? updatedRow : r), ...equiposAPI]);
+    const updatedRow = {
+      ...newRow,
+      totalPrice: (newRow.requestedQuantity || 0) * (newRow.unitPrice || 0),
+      pendingQuantity: (newRow.requestedQuantity || 0) - (newRow.deliveredQuantity || 0),
+    };
+
+    setHerramientasAPI(prev => {
+      const nuevasHerramientas = prev.map(r => r.id === updatedRow.id ? updatedRow : r);
+
+      if (requestDto) {
+        actualizarRequestDto([...materialesAPI, ...nuevasHerramientas, ...equiposAPI]);
+      }
+
+      return nuevasHerramientas;
+    });
+
     return updatedRow;
   };
 
   const processRowUpdateEquipo = (newRow: any) => {
-    const updatedRow = { ...newRow, totalPrice: (newRow.requestedQuantity || 0) * (newRow.unitPrice || 0) };
-    setEquiposAPI(prev => prev.map(r => r.id === updatedRow.id ? updatedRow : r));
+    const updatedRow = {
+      ...newRow,
+      totalPrice: (newRow.requestedQuantity || 0) * (newRow.unitPrice || 0),
+    };
+
+    setEquiposAPI(prev => {
+      const nuevosEquipos = prev.map(r => r.id === updatedRow.id ? updatedRow : r);
+
+      if (requestDto) {
+        actualizarRequestDto([...materialesAPI, ...herramientasAPI, ...nuevosEquipos]);
+      }
+
+      return nuevosEquipos;
+    });
+
     return updatedRow;
   };
+
 
   // ── Limpieza ──────────────────────────────────────────────────────────────
   const limpiarDatos = () => {
@@ -2584,7 +2647,7 @@ export default function SolicitudAbastecimiento() {
       const response = await fetch(`${API_URL}/api/hub-supply/supply-requests/${requestDto.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ request: requestDto }),
+        body: JSON.stringify(requestDto),
       });
 
       if (!response.ok) {
@@ -2747,7 +2810,7 @@ export default function SolicitudAbastecimiento() {
             )}
 
             {showSuccessGenerate && requestDto && (
-              <Alert severity="success" sx={{ mb: 3,mt:2, borderRadius: 2, boxShadow: "rgba(2,136,209,0.15) 0px 4px 16px" }}>
+              <Alert severity="success" sx={{ mb: 3, mt: 2, borderRadius: 2, boxShadow: "rgba(2,136,209,0.15) 0px 4px 16px" }}>
                 <Typography variant="body1" fontWeight={600}>✅ Solicitud generada: {requestDto.requestNumber}</Typography>
                 <Typography variant="body2">
                   Se han cargado {requestDto.totalItemsCount} items con consumo del período.
@@ -2850,7 +2913,7 @@ export default function SolicitudAbastecimiento() {
                 {/* <Divider sx={{ my: 3 }} /> */}
 
                 {/* Info de la solicitud */}
-                <Box sx={{ mb: 3,mt:4, p: 2, bgcolor: "primary.lighter", borderRadius: 2, border: "2px solid", borderColor: "primary.main" }}>
+                <Box sx={{ mb: 3, mt: 4, p: 2, bgcolor: "primary.lighter", borderRadius: 2, border: "2px solid", borderColor: "primary.main" }}>
                   <Typography variant="subtitle1" fontWeight={700} mb={1}>
                     📋 Solicitud: {requestDto.requestNumber}
                   </Typography>
