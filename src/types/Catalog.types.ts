@@ -8,7 +8,7 @@ export interface CompanyDTO {
 export interface ProjectDTO {
   id: number;
   name: string;
-  companyIds: number[]; 
+  companyId: string;
   startDate: string;
   endDate: string;
   status: string;

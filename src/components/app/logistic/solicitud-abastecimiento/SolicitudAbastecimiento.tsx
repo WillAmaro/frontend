@@ -2366,7 +2366,8 @@ export default function SolicitudAbastecimiento() {
 
   useEffect(() => {
     const options = catalogos.projects
-      .filter(p => p.companyIds.includes(Number(company)))
+      //.filter(p => p.companyIds.includes(Number(company)))
+      .filter(p => String(p.companyId) === String(company))
       .map(p => ({ label: p.name, value: p.id }));
 
     setProjectOptions(options);
