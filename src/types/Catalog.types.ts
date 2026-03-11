@@ -9,6 +9,8 @@ export interface ProjectDTO {
   id: number;
   name: string;
   companyId: string;
+  startDate: string;
+  endDate: string;
   status: string;
 }
 
