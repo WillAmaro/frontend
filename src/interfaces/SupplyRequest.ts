@@ -24,7 +24,7 @@ interface SupplyRequestItem {
   uom?: string;
 }
 
-interface SupplyRequestDto {
+interface SupplyRequestData {
   id: string;
   requestNumber: string;
   status: string;
@@ -49,4 +49,10 @@ interface SupplyRequestDto {
   deliveredBy: string | null;
   deliveredByName: string | null;
   deliveredAt: string | null;
+}
+
+interface SupplyRequestDto {
+  status: boolean;
+  message: string;
+  data: SupplyRequestData
 }

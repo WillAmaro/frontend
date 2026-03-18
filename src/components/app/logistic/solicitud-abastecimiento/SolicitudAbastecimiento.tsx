@@ -43,7 +43,7 @@ import dayjs, { Dayjs } from "dayjs";
 import SelectBase from "@/src/components/base/SelectBase";
 import { toast } from "react-toastify";
 import { CatalogService } from "@/src/services/api/CatalogService";
-import { CatalogDTO } from "@/src/types/Catalog.types";
+import { CatalogDTO, DataCatalogoDTO } from "@/src/types/Catalog.types";
 import { useSelector } from "react-redux";
 import { RootState } from "@/src/store/Store";
 import { GridColDef } from "@mui/x-data-grid";
@@ -95,10 +95,10 @@ export default function SolicitudAbastecimiento() {
   const [valueEntrega, setValueEntrega] = useState<Dayjs | null>(dayjs());
   const [projectOptions, setProjectOptions] = useState<any[]>([]);
   const [valueProyectoSeleccionado, setProyectoSeleccionado] = useState<string | number | null>(null);
-  const [catalogos, setCatalogos] = useState<CatalogDTO>({ companies: [], projects: [] });
+  const [catalogos, setCatalogos] = useState<DataCatalogoDTO>({ companies: [], projects: [] });
 
   // ── Estados de datos ──────────────────────────────────────────────────────
-  const [requestDto, setRequestDto] = useState<SupplyRequestDto | null>(null);
+  const [requestDto, setRequestDto] = useState<SupplyRequestData | null>(null);
   const [materialesAPI, setMaterialesAPI] = useState<SupplyRequestItem[]>([]);
   const [herramientasAPI, setHerramientasAPI] = useState<SupplyRequestItem[]>([]);
   const [equiposAPI, setEquiposAPI] = useState<SupplyRequestItem[]>([]);
@@ -109,7 +109,7 @@ export default function SolicitudAbastecimiento() {
   const [showSuccessExport, setShowSuccessExport] = useState(false);
   const [showSuccessGenerate, setShowSuccessGenerate] = useState(false);
   const [showSuccessSubmit, setShowSuccessSubmit] = useState(false);
-  const [submittedRequestInfo, setSubmittedRequestInfo] = useState<SupplyRequestDto | null>(null);
+  const [submittedRequestInfo, setSubmittedRequestInfo] = useState<SupplyRequestData | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
@@ -133,7 +133,8 @@ export default function SolicitudAbastecimiento() {
     const loadCatalogs = async () => {
       try {
         const data = await CatalogService.getAllCatalogs();
-        setCatalogos({ companies: data.companies, projects: data.projects });
+        debugger
+        setCatalogos({ companies: data.data.companies, projects: data.data.projects });
       } catch (error) {
         console.error(error);
       }
@@ -302,7 +303,7 @@ export default function SolicitudAbastecimiento() {
   };
 
   // ── Exportación Excel DINÁMICA según columnas seleccionadas ───────────────
-  const exportarSolicitudCompletaExcel = (requestData: SupplyRequestDto) => {
+  const exportarSolicitudCompletaExcel = (requestData: SupplyRequestData) => {
     const workbook = XLSX.utils.book_new();
 
     const prepararDatos = (items: SupplyRequestItem[]) =>
@@ -391,10 +392,10 @@ export default function SolicitudAbastecimiento() {
 
       }
       const data: SupplyRequestDto = await response.json();
-      setRequestDto(data);
-      setMaterialesAPI(data.items.filter(i => i.productType === "MATERIAL"));
-      setHerramientasAPI(data.items.filter(i => i.productType === "TOOL"));
-      setEquiposAPI(data.items.filter(i => i.productType === "EQUIPMENT"));
+      setRequestDto(data.data);
+      setMaterialesAPI(data.data.items.filter(i => i.productType === "MATERIAL"));
+      setHerramientasAPI(data.data.items.filter(i => i.productType === "TOOL"));
+      setEquiposAPI(data.data.items.filter(i => i.productType === "EQUIPMENT"));
       setShowSuccessGenerate(true);
     } catch (error) {
       toast.error("No se encontraron datos...", { position: "top-right" });
@@ -434,10 +435,10 @@ export default function SolicitudAbastecimiento() {
       }
 
       const submittedRequest: SupplyRequestDto = await response.json();
-      setSubmittedRequestInfo(submittedRequest);
+      setSubmittedRequestInfo(submittedRequest.data);
 
       // Exportar con las columnas que el usuario seleccionó
-      exportarSolicitudCompletaExcel(submittedRequest);
+      exportarSolicitudCompletaExcel(submittedRequest.data);
 
       limpiarTodo();
       setShowSuccessSubmit(true);

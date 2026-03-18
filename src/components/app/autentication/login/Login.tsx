@@ -104,8 +104,9 @@ export default function EnterpriseLogin() {
       );
 
       dispatch(setRoutes(drawerRoutes));
-      const data = await CatalogService.getAllCatalogs();
-      dispatch(setCompanies(data.companies));
+      const res = await CatalogService.getAllCatalogs();
+      debugger
+      dispatch(setCompanies(res.data.companies));
 
       toast.success(`Bienvenido, ${userData.full_name}`);
       router.push(drawerRoutes[0]?.path || "/dashboard");

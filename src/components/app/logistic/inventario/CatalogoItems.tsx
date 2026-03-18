@@ -5,7 +5,7 @@ import {
   Box, Card, Typography, Chip, Stack, Paper, Divider, Collapse,
   Alert, Fade, TextField, InputAdornment, CircularProgress,
   Dialog, DialogTitle, DialogContent, DialogActions, IconButton,
-  Tooltip, LinearProgress,
+  Tooltip, Badge,
 } from "@mui/material";
 import {
   SearchOutlined, Close, SendOutlined, AssignmentOutlined,
@@ -13,7 +13,7 @@ import {
   WarningAmberOutlined, ReportProblemOutlined, AddCircleOutline,
   CancelOutlined, InfoOutlined, ListAltOutlined, RefreshOutlined,
   AutorenewOutlined, ShoppingCartOutlined, TrendingUpOutlined,
-  CategoryOutlined, InventoryOutlined, CheckCircle,
+  CategoryOutlined,
 } from "@mui/icons-material";
 import { TitleCard } from "@/src/components/base/TitleCard";
 import ButtonBase from "@/src/components/base/ButtonBase";
@@ -23,6 +23,7 @@ import { GridColDef } from "@mui/x-data-grid";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import { API_URL } from "@/src/lib/config";
+import { Pi } from "lucide-react";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -32,6 +33,7 @@ interface CatalogProduct {
   id: number;
   code: string;
   name: string;
+  itemId:string;
   description: string | null;
   category: string;
   productType: ProductType;
@@ -41,20 +43,12 @@ interface CatalogProduct {
   tenantId: number;
 }
 
-interface PageResponse {
-  content: CatalogProduct[];
-  totalElements: number;
-  totalPages: number;
-  number: number;
-  size: number;
-  first: boolean;
-  last: boolean;
-}
-
 interface SelectedItemForRequest {
   productId: number;
   code: string;
   name: string;
+  id:number;
+  itemId:number;
   productType: ProductType;
   category: string;
   requestedQuantity: number;
@@ -63,61 +57,118 @@ interface SelectedItemForRequest {
   notes: string;
 }
 
-interface SupplyRequestDto {
+// DTOs que espera el backend
+interface InventorySupplyItemDto {
+  itemId: number;
+  requestedQuantity: number;
+  unitPrice: number | null;
+  isUrgent?: boolean;
+  notes?: string;
+}
+
+interface InventorySupplyRequestDto {
+  tenantId: number;
+  hubId: number;
+  projectId: number;
+  requestedBy: number;
+  requestedDeliveryDate: string; // LocalDate → "YYYY-MM-DD"
+  periodValueEntrega: string;    // LocalDate → "YYYY-MM-DD"
+  items: InventorySupplyItemDto[];
+  origin: "CATALOG";
+}
+
+interface InventoryApproveDto {
+  tenantId: number;
+  hubId: number;
+  approvedBy: number;
+  origin: "CATALOG";
+  notes?: string;
+  justification?: string;
+}
+
+interface SupplyRequestItemResponse {
+  id: number;
+  itemCode: string;
+  itemName: string;
+  itemDescription: string | null;
+  productType: string;
+  requestedQuantity: number;
+  approvedQuantity: number | null;
+  unitPrice: number | null;
+  totalPrice: number | null;
+}
+
+interface InventorySupplyResponseDto {
   id: number;
   requestNumber: string;
+  hubId: number;
   status: string;
-  items: any[];
-  totalItemsCount: number;
-  totalEstimatedValue: number;
+  statusDisplay: string;
+  periodStartDate: string;
+  periodEndDate: string;
   requestedDeliveryDate: string;
+  notes: string | null;
+  justification: string | null;
+  createdAt: string;
+  approvedAt: string | null;
+  items: SupplyRequestItemResponse[];
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
-const PRODUCT_TYPE_CONFIG: Record<ProductType, { label: string; icon: string; color: string; bg: string; border: string; bgLight: string }> = {
-  MATERIAL:  { label: "Material",    icon: "📦", color: "#ea580c", bg: "#fff7ed", border: "#fed7aa", bgLight: "#fff7ed" },
-  EQUIPMENT: { label: "Equipo",      icon: "⚙️", color: "#15803d", bg: "#f0fdf4", border: "#bbf7d0", bgLight: "#f0fdf4" },
-  TOOL:      { label: "Herramienta", icon: "🔧", color: "#1d4ed8", bg: "#eff6ff", border: "#bfdbfe", bgLight: "#eff6ff" },
-  EPP:       { label: "EPP",         icon: "🦺", color: "#7c3aed", bg: "#faf5ff", border: "#ddd6fe", bgLight: "#faf5ff" },
+const TENANT_ID  = 1;
+const HUB_ID     = 1;
+const PROJECT_ID = 1;
+const USER_ID    = 1; // TODO: reemplazar con el usuario del token
+
+const PRODUCT_TYPE_CONFIG: Record<ProductType, {
+  label: string; icon: string; color: string;
+  bg: string; border: string;
+}> = {
+  MATERIAL:  { label: "Material",    icon: "📦", color: "#ea580c", bg: "#fff7ed", border: "#fed7aa" },
+  EQUIPMENT: { label: "Equipo",      icon: "⚙️", color: "#15803d", bg: "#f0fdf4", border: "#bbf7d0" },
+  TOOL:      { label: "Herramienta", icon: "🔧", color: "#1d4ed8", bg: "#eff6ff", border: "#bfdbfe" },
+  EPP:       { label: "EPP",         icon: "🦺", color: "#7c3aed", bg: "#faf5ff", border: "#ddd6fe" },
 };
 
 const PAGE_SIZE = 10;
+const ALL_TYPES: ProductType[] = ["EPP", "MATERIAL", "EQUIPMENT", "TOOL"];
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
 export default function CatalogoPedido() {
   const topRef = useRef<HTMLDivElement>(null);
 
-  // ── Estado principal ──────────────────────────────────────────────────
-  const [productType, setProductType]     = useState<ProductType>("EPP");
+  // ── Tab de tipo activo (para el DataGrid) ─────────────────────────────
+  const [activeTab, setActiveTab]         = useState<ProductType>("EPP");
   const [search, setSearch]               = useState("");
   const [page, setPage]                   = useState(0);
   const [loading, setLoading]             = useState(false);
   const [modoSolicitud, setModoSolicitud] = useState(false);
   const [reloadTrigger, setReloadTrigger] = useState(0);
-
-  // rowsRef y totalRef: siempre contienen los datos más recientes del catálogo.
-  // Se usan como ref (no state) para evitar closures stale en handlers.
-  const rowsRef  = useRef<CatalogProduct[]>([]);
   const [totalElements, setTotalElements] = useState(0);
 
-  // ── Selección manual (igual que InventarioHub) ────────────────────────
+  // rowsRef: guarda la página visible actual sin stale closure
+  const rowsRef = useRef<CatalogProduct[]>([]);
+
+  // ── Selección acumulada de TODOS los tipos ────────────────────────────
+  // selectedIds: Set de IDs para marcar checkboxes en el DataGrid activo
+  // selectedItems: carrito acumulado cross-type
   const [selectedIds, setSelectedIds]     = useState<Set<number>>(new Set());
   const [selectedItems, setSelectedItems] = useState<SelectedItemForRequest[]>([]);
 
   // ── Flujo de solicitud ────────────────────────────────────────────────
   const [generando, setGenerando]               = useState(false);
-  const [requestDto, setRequestDto]             = useState<SupplyRequestDto | null>(null);
+  const [createdRequest, setCreatedRequest]     = useState<InventorySupplyResponseDto | null>(null);
   const [confirmOpen, setConfirmOpen]           = useState(false);
   const [submitting, setSubmitting]             = useState(false);
   const [showSuccess, setShowSuccess]           = useState(false);
-  const [submittedInfo, setSubmittedInfo]       = useState<SupplyRequestDto | null>(null);
+  const [submittedInfo, setSubmittedInfo]       = useState<InventorySupplyResponseDto | null>(null);
   const [deliveryDays, setDeliveryDays]         = useState<number>(7);
 
   // ── Búsqueda con debounce ─────────────────────────────────────────────
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [debouncedSearch, setDebouncedSearch]   = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
@@ -125,58 +176,58 @@ export default function CatalogoPedido() {
     return () => { if (searchTimer.current) clearTimeout(searchTimer.current); };
   }, [search]);
 
-  // ── Cuando cambia tipo o búsqueda: reset página + dispara reloadTrigger ─
-  // reloadTrigger le dice a CustomDataGrid que debe re-fetchear desde página 0
+  // Al cambiar tab o búsqueda → reset page + reload
   useEffect(() => {
     setPage(0);
     setReloadTrigger(t => t + 1);
-  }, [productType, debouncedSearch]);
+  }, [activeTab, debouncedSearch]);
 
-  // ── fetchData: única fuente de fetch, usada por CustomDataGrid ──────────
-  // Guarda los rows en rowsRef para que handleCheckOne/handleCheckAll
-  // siempre accedan a la página visible más reciente sin closures stale.
+  // ── fetchData: filtra por el tab activo ──────────────────────────────
   const fetchData = useCallback(
     async (p: number, _size: number, _search: string) => {
       setPage(p);
       const params = new URLSearchParams({
-        productType,
+        productType: activeTab,
         page: String(p),
         size: String(PAGE_SIZE),
         ...(debouncedSearch.trim() ? { search: debouncedSearch.trim() } : {}),
       });
-      const res = await fetch(`${API_URL}/api/catalogs/product-type?${params}`);
+      const res = await fetch(`${API_URL}/api/catalog-supply/product-type?${params}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: PageResponse = await res.json();
-      rowsRef.current = data.content;      // siempre fresco, sin stale closure
-      setTotalElements(data.totalElements); // para mostrar el contador en UI
-      return { rows: data.content, total: data.totalElements };
+      const data: any = await res.json();
+      rowsRef.current = data.data.content;
+      setTotalElements(data.data.totalElements);
+      return { rows: data.data.content, total: data.data.totalElements };
     },
-    [productType, debouncedSearch]
+    [activeTab, debouncedSearch]
   );
 
   const buildSelectedItem = (p: CatalogProduct): SelectedItemForRequest => ({
+    id:p.id,
     productId: p.id, code: p.code, name: p.name,
+    itemId : p.id,
     productType: p.productType, category: p.category,
     requestedQuantity: 1,
     unitPrice: p.lastPurchasePrice ?? p.standardPrice ?? null,
     isUrgent: false, notes: "",
   });
 
-  // ── Activar modo solicitud ────────────────────────────────────────────
+  // ── Activar / cancelar modo solicitud ────────────────────────────────
   const activarModo = () => {
     setModoSolicitud(true);
     setTimeout(() => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
   };
-
   const cancelarModo = () => {
     setModoSolicitud(false);
     setSelectedIds(new Set());
     setSelectedItems([]);
+    setCreatedRequest(null);
   };
 
-  // ── Handlers selección manual ─────────────────────────────────────────
-  // handleCheckOne y handleCheckAll leen de rowsRef.current en lugar de
-  // un estado rows para evitar closures stale cuando cambia productType.
+  // ── Handlers selección ────────────────────────────────────────────────
+  // selectedIds refleja solo los IDs del tab activo para el DataGrid,
+  // pero selectedItems acumula todos los tipos.
+
   const handleCheckOne = useCallback((id: number | string, checked: boolean) => {
     const numId = Number(id);
     setSelectedIds(prev => {
@@ -209,69 +260,138 @@ export default function CatalogoPedido() {
     });
   }, []);
 
-  const updateQty = (productId: number, qty: number) => {
+  // Al cambiar de tab, sincroniza selectedIds con los del carrito que ya
+  // estén en ese tab (para que los checkboxes aparezcan marcados)
+  useEffect(() => {
+    const idsDeEsteTab = new Set(
+      selectedItems
+        .filter(i => i.productType === activeTab)
+        .map(i => i.productId)
+    );
+    setSelectedIds(idsDeEsteTab);
+  }, [activeTab, selectedItems]);
+
+  const updateQty = (productId: number, qty: number) =>
     setSelectedItems(prev => prev.map(i => i.productId === productId ? { ...i, requestedQuantity: Math.max(1, qty) } : i));
-  };
-  const updateUnitPrice = (productId: number, price: number) => {
+
+  const updateUnitPrice = (productId: number, price: number) =>
     setSelectedItems(prev => prev.map(i => i.productId === productId ? { ...i, unitPrice: Math.max(0, price) } : i));
-  };
-  const toggleUrgent = (productId: number) => {
+
+  const toggleUrgent = (productId: number) =>
     setSelectedItems(prev => prev.map(i => i.productId === productId ? { ...i, isUrgent: !i.isUrgent } : i));
-  };
-  const updateNotes = (productId: number, notes: string) => {
-    setSelectedItems(prev => prev.map(i => i.productId === productId ? { ...i, notes } : i));
-  };
+
   const removeItem = (productId: number) => {
     setSelectedIds(prev => { const n = new Set(prev); n.delete(productId); return n; });
     setSelectedItems(prev => prev.filter(i => i.productId !== productId));
   };
 
   const totalEstimado = selectedItems.reduce((s, i) => s + (i.unitPrice ?? 0) * i.requestedQuantity, 0);
-  const hayPrecio = selectedItems.some(i => i.unitPrice !== null && i.unitPrice > 0);
+  const hayPrecio     = selectedItems.some(i => i.unitPrice !== null && i.unitPrice > 0);
 
-  // ── Generar solicitud ─────────────────────────────────────────────────
+  // ── PASO 1: POST → crea en DRAFT ─────────────────────────────────────
   const handleGenerarSolicitud = async () => {
     if (selectedItems.length === 0) { toast.warning("Selecciona al menos un producto"); return; }
     setGenerando(true);
     try {
-      // TODO: POST /api/hub-supply con selectedItems
-      await new Promise(r => setTimeout(r, 900));
-      const mock: SupplyRequestDto = {
-        id: Math.floor(Math.random() * 9000) + 1000,
-        requestNumber: `SAB-${dayjs().format("YYYYMM")}-${String(Math.floor(Math.random() * 999) + 1).padStart(3, "0")}`,
-        status: "DRAFT",
-        items: selectedItems.map((item, idx) => ({
-          id: idx + 1, itemCode: item.code, itemName: item.name,
-          productType: item.productType, requestedQuantity: item.requestedQuantity,
-          unitPrice: item.unitPrice ?? 0, totalPrice: (item.unitPrice ?? 0) * item.requestedQuantity,
-          isUrgent: item.isUrgent, notes: item.notes, uom: "UND",
+      const deliveryDate  = dayjs().add(deliveryDays, "day").format("YYYY-MM-DD");
+      const periodDate    = dayjs().format("YYYY-MM-DD");
+
+      const body: InventorySupplyRequestDto = {
+        tenantId:             TENANT_ID,
+        hubId:                HUB_ID,
+        projectId:            PROJECT_ID,
+        requestedBy:          USER_ID,
+        requestedDeliveryDate: deliveryDate,
+        periodValueEntrega:   periodDate,
+        origin:               "CATALOG",
+        items: selectedItems.map(i => ({
+          id: i.id,
+          itemId:            i.productId,
+          itemCode: i.code,
+          deliveredQuantity:0,
+          pendingQuantity:0,
+          productType : i.productType,
+          itemDescription : i.name,
+          itemName : i.name,
+          requestedQuantity: i.requestedQuantity,
+          unitPrice:         i.unitPrice,
+          isUrgent:          i.isUrgent,
+          notes:             i.notes || undefined,
         })),
-        totalItemsCount: selectedItems.length,
-        totalEstimatedValue: totalEstimado,
-        requestedDeliveryDate: dayjs().add(deliveryDays, "day").toISOString(),
       };
-      setRequestDto(mock);
+
+      const res = await fetch(`${API_URL}/api/catalog-supply/supply-request`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.message ?? `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      const dto: InventorySupplyResponseDto = data.data;
+      setCreatedRequest(dto);
       setConfirmOpen(true);
-    } catch {
-      toast.error("Error al generar la solicitud");
+      toast.info(`Solicitud ${dto.requestNumber} creada en DRAFT`);
+    } catch (e: any) {
+      toast.error(`Error al generar solicitud: ${e.message}`);
     } finally {
       setGenerando(false);
     }
   };
 
+  // ── PASO 2: PUT → aprueba la solicitud ───────────────────────────────
   const handleAprobar = async () => {
-    if (!requestDto) return;
+    if (!createdRequest) return;
     setConfirmOpen(false);
     setSubmitting(true);
     try {
-      await new Promise(r => setTimeout(r, 1400));
-      setSubmittedInfo({ ...requestDto, status: "APPROVED" });
+      const body: any = {
+        tenantId:     TENANT_ID,
+        hubId:        HUB_ID,
+        approvedBy:   USER_ID,
+        origin:       "CATALOG",
+          items: selectedItems.map(i => ({
+          id: i.id,
+          itemId:            i.productId,
+          itemCode: i.code,
+          deliveredQuantity:0,
+          pendingQuantity:0,
+          productType : i.productType,
+          itemDescription : i.name,
+          itemName : i.name,
+          requestedQuantity: i.requestedQuantity,
+          unitPrice:         i.unitPrice,
+          isUrgent:          i.isUrgent,
+          notes:             i.notes || undefined,
+        })),
+        notes:        `Aprobado desde catálogo — ${selectedItems.length} productos`,
+        justification: "Solicitud generada desde catálogo de productos",
+      };
+
+      const res = await fetch(`${API_URL}/api/catalog-supply/supply-request/${createdRequest.id}`, {
+        method:  "PUT",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.message ?? `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      const approved: InventorySupplyResponseDto = data.data;
+      setSubmittedInfo(approved);
       setShowSuccess(true);
       cancelarModo();
-      setRequestDto(null);
       topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch {
-      toast.error("Error al aprobar la solicitud");
+      toast.success(`Solicitud ${approved.requestNumber} aprobada exitosamente`);
+    } catch (e: any) {
+      toast.error(`Error al aprobar solicitud: ${e.message}`);
     } finally {
       setSubmitting(false);
     }
@@ -310,17 +430,6 @@ export default function CatalogoPedido() {
       ),
     },
     {
-      field: "productType", headerName: "Tipo", width: 130,
-      renderCell: (p) => {
-        const cfg = PRODUCT_TYPE_CONFIG[p.value as ProductType];
-        return cfg
-          ? <Chip label={`${cfg.icon} ${cfg.label}`} size="small" variant="outlined"
-              sx={{ borderColor: cfg.color, color: cfg.color, fontWeight: 600, fontSize: "0.72rem" }}
-            />
-          : <Typography>{p.value}</Typography>;
-      },
-    },
-    {
       field: "standardPrice", headerName: "Precio Estándar", width: 140, align: "right", headerAlign: "right",
       renderCell: (p) => (
         <Typography variant="body2" sx={{ fontFamily: "monospace", color: p.value ? "text.primary" : "text.disabled" }}>
@@ -347,13 +456,24 @@ export default function CatalogoPedido() {
   // ─── COLUMNAS carrito ──────────────────────────────────────────────────
   const columnsCarrito: GridColDef[] = [
     {
-      field: "code", headerName: "Código", width: 155,
+      field: "productType", headerName: "Tipo", width: 110,
+      renderCell: (p) => {
+        const cfg = PRODUCT_TYPE_CONFIG[p.value as ProductType];
+        return cfg
+          ? <Chip label={`${cfg.icon} ${cfg.label}`} size="small" variant="outlined"
+              sx={{ borderColor: cfg.color, color: cfg.color, fontWeight: 600, fontSize: "0.7rem" }}
+            />
+          : <Typography>{p.value}</Typography>;
+      },
+    },
+    {
+      field: "code", headerName: "Código", width: 145,
       renderCell: (p) => {
         const cfg = PRODUCT_TYPE_CONFIG[p.row.productType as ProductType];
         return <Chip label={p.value} size="small" sx={{ bgcolor: cfg?.color, color: "white", fontWeight: 700, fontSize: "0.7rem" }} />;
       },
     },
-    { field: "name", headerName: "Nombre", flex: 2, minWidth: 200 },
+    { field: "name", headerName: "Nombre", flex: 2, minWidth: 180 },
     {
       field: "requestedQuantity", headerName: "Cantidad", width: 110, align: "center", headerAlign: "center",
       renderCell: (p) => (
@@ -417,7 +537,7 @@ export default function CatalogoPedido() {
       <TitleCard
         icon={<CategoryOutlined sx={{ fontSize: 32 }} />}
         title="Catálogo de Productos"
-        description="Explora el catálogo de materiales, equipos, herramientas y EPPs disponibles. Selecciona los productos y genera solicitudes de abastecimiento directamente desde aquí."
+        description="Explora el catálogo de materiales, equipos, herramientas y EPPs. Puedes seleccionar productos de varios tipos y generar una solicitud de abastecimiento en un solo envío."
       />
 
       {/* ══ PANTALLA ÉXITO ══ */}
@@ -437,20 +557,20 @@ export default function CatalogoPedido() {
               animation: "pulseRing 2s ease-in-out infinite",
               "@keyframes pulseRing": {
                 "0%, 100%": { boxShadow: "0 0 0 16px rgba(34,197,94,0.12), 0 0 0 32px rgba(34,197,94,0.06)" },
-                "50%": { boxShadow: "0 0 0 20px rgba(34,197,94,0.08), 0 0 0 40px rgba(34,197,94,0.03)" },
+                "50%":       { boxShadow: "0 0 0 20px rgba(34,197,94,0.08), 0 0 0 40px rgba(34,197,94,0.03)" },
               },
             }}>
               <CheckCircleOutline sx={{ fontSize: 52, color: "white" }} />
             </Box>
-            <Typography variant="h4" fontWeight={800} sx={{ color: "#15803d", mb: 1 }}>¡Solicitud Registrada!</Typography>
+            <Typography variant="h4" fontWeight={800} sx={{ color: "#15803d", mb: 1 }}>¡Solicitud Aprobada!</Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 500, mx: "auto" }}>
-              La solicitud <strong>{submittedInfo?.requestNumber}</strong> fue generada desde el catálogo y está en el flujo de abastecimiento.
+              La solicitud <strong>{submittedInfo?.requestNumber}</strong> fue aprobada y está lista para el flujo de abastecimiento.
             </Typography>
             <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap", mb: 4 }}>
               {[
-                { label: "Nro. Solicitud",        value: submittedInfo?.requestNumber ?? "—", color: "#15803d" },
-                { label: "Productos solicitados",  value: String(submittedInfo?.items?.length ?? 0),     color: "#0369a1" },
-                { label: "Total Estimado",         value: submittedInfo && submittedInfo.totalEstimatedValue > 0 ? `S/ ${submittedInfo.totalEstimatedValue.toFixed(2)}` : "—", color: "#7c3aed" },
+                { label: "Nro. Solicitud",       value: submittedInfo?.requestNumber ?? "—",               color: "#15803d" },
+                { label: "Productos solicitados", value: String(submittedInfo?.items?.length ?? 0),          color: "#0369a1" },
+                { label: "Estado",                value: submittedInfo?.statusDisplay ?? submittedInfo?.status ?? "—", color: "#7c3aed" },
               ].map(card => (
                 <Paper key={card.label} elevation={0} sx={{ px: 3, py: 2.5, borderRadius: 3, border: "1px solid #bbf7d0", bgcolor: "white", minWidth: 150, textAlign: "center" }}>
                   <Typography variant="h5" fontWeight={800} sx={{ color: card.color }}>{card.value}</Typography>
@@ -462,16 +582,11 @@ export default function CatalogoPedido() {
               La solicitud pasará al proceso de <strong>Recepción de Materiales</strong> una vez que el proveedor despache los ítems.
             </Alert>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center">
-              <ButtonBase
-                label="Nueva Solicitud"
-                startIcon={<AddCircleOutline />}
+              <ButtonBase label="Nueva Solicitud" startIcon={<AddCircleOutline />}
                 onClick={() => { setShowSuccess(false); activarModo(); }}
                 sx={{ px: 4, py: 1.5, fontWeight: 700, boxShadow: "0 4px 12px rgba(34,197,94,0.3)", borderRadius: 2.5 }}
               />
-              <ButtonBase
-                label="Ver Catálogo"
-                variant="outlined"
-                startIcon={<ListAltOutlined />}
+              <ButtonBase label="Ver Catálogo" variant="outlined" startIcon={<ListAltOutlined />}
                 onClick={() => setShowSuccess(false)}
                 sx={{ px: 4, py: 1.5, bgcolor: "white", color: "text.primary", border: "1px solid #cbd5e1", borderRadius: 2.5 }}
               />
@@ -484,27 +599,44 @@ export default function CatalogoPedido() {
       <Fade in={!showSuccess} timeout={400} unmountOnExit>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
 
-          {/* KPIs por tipo */}
+          {/* ── TABS de tipo de producto ─────────────────────────────── */}
           <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-            {(Object.entries(PRODUCT_TYPE_CONFIG) as [ProductType, typeof PRODUCT_TYPE_CONFIG[ProductType]][]).map(([tipo, cfg]) => (
-              <Paper key={tipo} variant="outlined"
-                onClick={() => { setProductType(tipo); setModoSolicitud(false); setSelectedIds(new Set()); setSelectedItems([]); }}
-                sx={{
-                  flex: "1 1 140px", p: 2.5, borderRadius: 3, cursor: "pointer",
-                  bgcolor: productType === tipo ? cfg.bg : "white",
-                  border: productType === tipo ? `2px solid ${cfg.color}` : `1.5px solid ${cfg.border}`,
-                  transition: "all 0.2s",
-                  "&:hover": { transform: "translateY(-2px)", boxShadow: `0 8px 24px ${cfg.color}25`, bgcolor: cfg.bg },
-                }}
-              >
-                <Typography sx={{ fontSize: 28, lineHeight: 1, mb: 1 }}>{cfg.icon}</Typography>
-                <Typography variant="body2" fontWeight={800} sx={{ color: cfg.color }}>{cfg.label}</Typography>
-                {productType === tipo && <Box sx={{ width: 24, height: 3, bgcolor: cfg.color, borderRadius: 2, mt: 1 }} />}
-              </Paper>
-            ))}
+            {ALL_TYPES.map(tipo => {
+              const cfg     = PRODUCT_TYPE_CONFIG[tipo];
+              const count   = selectedItems.filter(i => i.productType === tipo).length;
+              const isActive = activeTab === tipo;
+              return (
+                <Paper key={tipo} variant="outlined"
+                  onClick={() => { setActiveTab(tipo); setSearch(""); }}
+                  sx={{
+                    flex: "1 1 140px", p: 2.5, borderRadius: 3, cursor: "pointer", position: "relative",
+                    bgcolor: isActive ? cfg.bg : "white",
+                    border: isActive ? `2px solid ${cfg.color}` : `1.5px solid ${cfg.border}`,
+                    transition: "all 0.2s",
+                    "&:hover": { transform: "translateY(-2px)", boxShadow: `0 8px 24px ${cfg.color}25`, bgcolor: cfg.bg },
+                  }}
+                >
+                  {/* Badge con cantidad en carrito */}
+                  {count > 0 && (
+                    <Box sx={{
+                      position: "absolute", top: 8, right: 8,
+                      bgcolor: cfg.color, color: "white",
+                      borderRadius: "50%", width: 22, height: 22,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "0.65rem", fontWeight: 800,
+                    }}>
+                      {count}
+                    </Box>
+                  )}
+                  <Typography sx={{ fontSize: 28, lineHeight: 1, mb: 1 }}>{cfg.icon}</Typography>
+                  <Typography variant="body2" fontWeight={800} sx={{ color: cfg.color }}>{cfg.label}</Typography>
+                  {isActive && <Box sx={{ width: 24, height: 3, bgcolor: cfg.color, borderRadius: 2, mt: 1 }} />}
+                </Paper>
+              );
+            })}
           </Box>
 
-          {/* Banner modo solicitud activo */}
+          {/* ── Banner modo solicitud ────────────────────────────────── */}
           <Collapse in={modoSolicitud}>
             <Card sx={{ borderRadius: 3, background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 50%, #5b21b6 100%)", p: 0, overflow: "hidden" }}>
               <Box sx={{ p: 2.5, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
@@ -515,13 +647,15 @@ export default function CatalogoPedido() {
                   <Box>
                     <Typography variant="subtitle1" fontWeight={800} color="white">Modo Pedido Activo</Typography>
                     <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.75)" }}>
-                      Marca los productos que quieres solicitar. Puedes cambiar de tipo sin perder tu selección.
+                      Marca productos de cualquier tipo — todos se incluirán en una sola solicitud.
                     </Typography>
                   </Box>
                 </Stack>
                 <Stack direction="row" spacing={1.5} alignItems="center">
-                  {selectedIds.size > 0 && (
-                    <Chip label={`${selectedIds.size} producto${selectedIds.size > 1 ? "s" : ""} en pedido`} size="small"
+                  {selectedItems.length > 0 && (
+                    <Chip
+                      label={`${selectedItems.length} producto${selectedItems.length > 1 ? "s" : ""} en pedido`}
+                      size="small"
                       sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "white", fontWeight: 700 }}
                     />
                   )}
@@ -533,18 +667,18 @@ export default function CatalogoPedido() {
             </Card>
           </Collapse>
 
-          {/* Panel de filtros y acciones */}
+          {/* ── Panel filtros y acciones ─────────────────────────────── */}
           <Card elevation={3} sx={{ borderRadius: 4, boxShadow: "rgba(149,157,165,0.2) 0px 8px 24px", overflow: "hidden" }}>
             <Box sx={{ px: 3, py: 2.5, borderBottom: "1px solid", borderColor: "divider", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2, bgcolor: "#fafbfc" }}>
               <Stack direction="row" spacing={2} alignItems="center">
-                <Box sx={{ width: 4, height: 22, bgcolor: PRODUCT_TYPE_CONFIG[productType].color, borderRadius: 1, transition: "background 0.3s" }} />
+                <Box sx={{ width: 4, height: 22, bgcolor: PRODUCT_TYPE_CONFIG[activeTab].color, borderRadius: 1, transition: "background 0.3s" }} />
                 <Box>
                   <Typography variant="subtitle1" fontWeight={800}>
-                    {PRODUCT_TYPE_CONFIG[productType].icon} {PRODUCT_TYPE_CONFIG[productType].label}s — Catálogo
+                    {PRODUCT_TYPE_CONFIG[activeTab].icon} {PRODUCT_TYPE_CONFIG[activeTab].label}s — Catálogo
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {totalElements} productos totales
-                    {modoSolicitud && selectedIds.size > 0 && ` • ${selectedIds.size} seleccionados`}
+                    {totalElements} productos
+                    {modoSolicitud && selectedItems.length > 0 && ` • ${selectedItems.length} en carrito (${ALL_TYPES.filter(t => selectedItems.some(i => i.productType === t)).length} tipos)`}
                   </Typography>
                 </Box>
               </Stack>
@@ -561,21 +695,20 @@ export default function CatalogoPedido() {
                   <ButtonBase label="Hacer Pedido desde Catálogo" startIcon={<AutorenewOutlined />} onClick={activarModo}
                     sx={{
                       px: 3, py: 1.2, fontWeight: 700, borderRadius: 2.5,
-                      background: `linear-gradient(135deg, ${PRODUCT_TYPE_CONFIG[productType].color} 0%, ${PRODUCT_TYPE_CONFIG[productType].color}cc 100%)`,
-                      boxShadow: `0 4px 14px ${PRODUCT_TYPE_CONFIG[productType].color}50`,
-                      "&:hover": { transform: "translateY(-1px)", boxShadow: `0 8px 20px ${PRODUCT_TYPE_CONFIG[productType].color}60` },
+                      background: `linear-gradient(135deg, ${PRODUCT_TYPE_CONFIG[activeTab].color} 0%, ${PRODUCT_TYPE_CONFIG[activeTab].color}cc 100%)`,
+                      boxShadow: `0 4px 14px ${PRODUCT_TYPE_CONFIG[activeTab].color}50`,
                     }}
                   />
                 ) : (
                   <ButtonBase
-                    label={generando ? "Generando..." : `Generar Solicitud (${selectedIds.size})`}
+                    label={generando ? "Generando..." : `Generar Solicitud (${selectedItems.length})`}
                     startIcon={generando ? <CircularProgress size={18} color="inherit" /> : <AddCircleOutline />}
                     onClick={handleGenerarSolicitud}
-                    disabled={generando || selectedIds.size === 0}
+                    disabled={generando || selectedItems.length === 0}
                     sx={{
                       px: 3, py: 1.2, fontWeight: 700, borderRadius: 2.5,
-                      background: selectedIds.size === 0 ? undefined : "linear-gradient(135deg, #16a34a 0%, #15803d 100%)",
-                      boxShadow: selectedIds.size > 0 ? "0 4px 14px rgba(22,163,74,0.35)" : "none",
+                      background: selectedItems.length === 0 ? undefined : "linear-gradient(135deg, #16a34a 0%, #15803d 100%)",
+                      boxShadow: selectedItems.length > 0 ? "0 4px 14px rgba(22,163,74,0.35)" : "none",
                     }}
                   />
                 )}
@@ -585,13 +718,13 @@ export default function CatalogoPedido() {
             <Box sx={{ px: 3, py: 2, display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
               <Box sx={{ flex: "0 0 210px" }}>
                 <SelectBase
-                  label="Tipo de Producto" size="small" value={productType}
-                  onChange={(v) => { setProductType(v as ProductType); setPage(0); }}
+                  label="Tipo de Producto" size="small" value={activeTab}
+                  onChange={(v) => setActiveTab(v as ProductType)}
                   options={[
-                    { label: "📦 Materiales",    value: "MATERIAL"  },
-                    { label: "⚙️ Equipos",        value: "EQUIPMENT" },
-                    { label: "🔧 Herramientas",   value: "TOOL"      },
-                    { label: "🦺 EPP",            value: "EPP"       },
+                    { label: "📦 Materiales",  value: "MATERIAL"  },
+                    { label: "⚙️ Equipos",      value: "EQUIPMENT" },
+                    { label: "🔧 Herramientas", value: "TOOL"      },
+                    { label: "🦺 EPP",          value: "EPP"       },
                   ]}
                   fullWidth
                 />
@@ -617,7 +750,7 @@ export default function CatalogoPedido() {
                   sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                 />
               </Box>
-              {modoSolicitud && selectedIds.size > 0 && (
+              {modoSolicitud && selectedItems.length > 0 && (
                 <Chip
                   label="Limpiar selección"
                   size="small" clickable
@@ -629,24 +762,22 @@ export default function CatalogoPedido() {
             </Box>
           </Card>
 
-          {/* DataGrid catálogo */}
+          {/* ── DataGrid catálogo ────────────────────────────────────── */}
           <Card elevation={3} sx={{ borderRadius: 4, boxShadow: "rgba(149,157,165,0.2) 0px 8px 24px", p: 3 }}>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2.5, flexWrap: "wrap", gap: 2 }}>
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: PRODUCT_TYPE_CONFIG[productType].bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>
-                  {PRODUCT_TYPE_CONFIG[productType].icon}
-                </Box>
-                <Box>
-                  <Typography variant="h6" fontWeight={800}>
-                    {modoSolicitud ? "Selecciona productos para tu solicitud" : `Catálogo de ${PRODUCT_TYPE_CONFIG[productType].label}s`}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {modoSolicitud
-                      ? "Usa los checkboxes para agregar productos al pedido. Cambia de tipo para agregar más."
-                      : "Vista de solo lectura — usa \"Hacer Pedido desde Catálogo\" para iniciar una solicitud"}
-                  </Typography>
-                </Box>
-              </Stack>
+            <Box sx={{ display: "flex", alignItems: "center", mb: 2.5, gap: 2 }}>
+              <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: PRODUCT_TYPE_CONFIG[activeTab].bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>
+                {PRODUCT_TYPE_CONFIG[activeTab].icon}
+              </Box>
+              <Box>
+                <Typography variant="h6" fontWeight={800}>
+                  {modoSolicitud ? `Selecciona ${PRODUCT_TYPE_CONFIG[activeTab].label}s para tu solicitud` : `Catálogo de ${PRODUCT_TYPE_CONFIG[activeTab].label}s`}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {modoSolicitud
+                    ? "Usa los checkboxes. Cambia de pestaña para agregar otros tipos al mismo pedido."
+                    : "Vista de solo lectura — usa \"Hacer Pedido desde Catálogo\" para iniciar una solicitud"}
+                </Typography>
+              </Box>
             </Box>
 
             <CustomDataGrid
@@ -658,28 +789,20 @@ export default function CatalogoPedido() {
               pageSize={PAGE_SIZE}
               showToolbar={false}
               reloadTrigger={reloadTrigger}
-              // ── Selección manual ──────────────────────────────────
               selectionEnabled={modoSolicitud}
               selectedIds={selectedIds}
               onSelectionChange={handleCheckOne}
               onSelectAll={handleCheckAll}
               sx={{
-                ...(modoSolicitud && {
-                  "& .MuiDataGrid-row:hover": { bgcolor: "#f5f3ff !important", cursor: "pointer" },
-                }),
-                ...(!modoSolicitud && {
-                  "& .MuiDataGrid-row": { cursor: "default" },
-                }),
+                ...(modoSolicitud && { "& .MuiDataGrid-row:hover": { bgcolor: "#f5f3ff !important", cursor: "pointer" } }),
+                ...(!modoSolicitud && { "& .MuiDataGrid-row": { cursor: "default" } }),
               }}
             />
           </Card>
 
-          {/* ══ CARRITO ══ */}
+          {/* ══ CARRITO MULTI-TIPO ══ */}
           <Collapse in={modoSolicitud && selectedItems.length > 0} unmountOnExit>
-            <Card elevation={4} sx={{
-              borderRadius: 4, border: "2px solid #ddd6fe", overflow: "hidden",
-              boxShadow: "rgba(124,58,237,0.18) 0px 8px 32px",
-            }}>
+            <Card elevation={4} sx={{ borderRadius: 4, border: "2px solid #ddd6fe", overflow: "hidden", boxShadow: "rgba(124,58,237,0.18) 0px 8px 32px" }}>
               {/* Header carrito */}
               <Box sx={{ background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)", p: 3, color: "white" }}>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
@@ -688,7 +811,7 @@ export default function CatalogoPedido() {
                     <Box>
                       <Typography variant="h6" fontWeight={800}>Pedido desde Catálogo</Typography>
                       <Typography variant="caption" sx={{ opacity: 0.85 }}>
-                        {selectedItems.length} producto(s) — Ajusta cantidades y precios antes de enviar
+                        {selectedItems.length} producto(s) de {ALL_TYPES.filter(t => selectedItems.some(i => i.productType === t)).length} tipo(s) — ajusta cantidades antes de enviar
                       </Typography>
                     </Box>
                   </Stack>
@@ -715,14 +838,16 @@ export default function CatalogoPedido() {
               <Box sx={{ p: 3 }}>
                 {/* Resumen por tipo */}
                 <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
-                  {(["EPP", "MATERIAL", "EQUIPMENT", "TOOL"] as ProductType[])
+                  {ALL_TYPES
                     .filter(tipo => selectedItems.some(i => i.productType === tipo))
                     .map(tipo => {
-                      const cfg = PRODUCT_TYPE_CONFIG[tipo];
-                      const items = selectedItems.filter(i => i.productType === tipo);
+                      const cfg      = PRODUCT_TYPE_CONFIG[tipo];
+                      const items    = selectedItems.filter(i => i.productType === tipo);
                       const subtotal = items.reduce((s, i) => s + (i.unitPrice ?? 0) * i.requestedQuantity, 0);
                       return (
-                        <Paper key={tipo} variant="outlined" sx={{ flex: "1 1 130px", p: 2, borderRadius: 2, textAlign: "center", border: `1px solid ${cfg.border}`, bgcolor: cfg.bg }}>
+                        <Paper key={tipo} variant="outlined"
+                          onClick={() => setActiveTab(tipo)}
+                          sx={{ flex: "1 1 130px", p: 2, borderRadius: 2, textAlign: "center", border: `1px solid ${cfg.border}`, bgcolor: cfg.bg, cursor: "pointer", "&:hover": { transform: "translateY(-1px)" }, transition: "0.15s" }}>
                           <Typography sx={{ fontSize: 22, lineHeight: 1 }}>{cfg.icon}</Typography>
                           <Typography variant="h5" fontWeight={800} sx={{ color: cfg.color }}>{items.length}</Typography>
                           <Typography variant="caption" color="text.secondary" fontWeight={600} display="block">{cfg.label}</Typography>
@@ -732,19 +857,15 @@ export default function CatalogoPedido() {
                     })}
                 </Box>
 
-                {/* Opciones adicionales */}
+                {/* Fecha de entrega */}
                 <Box sx={{ display: "flex", gap: 2, mb: 3, alignItems: "center", flexWrap: "wrap" }}>
-                  <Box sx={{ flex: "0 0 200px" }}>
+                  <Box sx={{ flex: "0 0 210px" }}>
                     <TextField
-                      label="Días para entrega estimada"
-                      type="number"
-                      size="small"
+                      label="Días para entrega estimada" type="number" size="small"
                       value={deliveryDays}
                       onChange={e => setDeliveryDays(Math.max(1, parseInt(e.target.value) || 1))}
                       inputProps={{ min: 1 }}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end"><Typography variant="caption" color="text.secondary">días</Typography></InputAdornment>
-                      }}
+                      InputProps={{ endAdornment: <InputAdornment position="end"><Typography variant="caption" color="text.secondary">días</Typography></InputAdornment> }}
                       sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
                       fullWidth
                     />
@@ -757,19 +878,16 @@ export default function CatalogoPedido() {
                   </Stack>
                 </Box>
 
-                {/* DataGrid carrito */}
+                {/* DataGrid carrito — muestra TODOS los tipos mezclados */}
                 <CustomDataGrid
                   columns={columnsCarrito}
                   localRows={selectedItems.map(i => ({ ...i, id: i.productId }))}
                   serverSide={false}
                   search=""
                   onSearch={() => {}}
-                  pageSize={20}
+                  pageSize={50}
                   showToolbar={false}
-                  sx={{
-                    border: "1px solid #ddd6fe",
-                    "& .MuiDataGrid-columnHeaders": { bgcolor: "#f5f3ff" },
-                  }}
+                  sx={{ border: "1px solid #ddd6fe", "& .MuiDataGrid-columnHeaders": { bgcolor: "#f5f3ff" } }}
                 />
 
                 {/* Totales */}
@@ -800,7 +918,7 @@ export default function CatalogoPedido() {
                   <Stack direction="row" spacing={1} alignItems="center">
                     <InfoOutlined sx={{ fontSize: 16, color: "text.disabled" }} />
                     <Typography variant="caption" color="text.disabled">
-                      Haz clic en "Urgente" para marcar productos críticos. Los precios son opcionales.
+                      Se enviará una sola solicitud con todos los productos seleccionados.
                     </Typography>
                   </Stack>
                   <Stack direction="row" spacing={2}>
@@ -808,7 +926,7 @@ export default function CatalogoPedido() {
                       sx={{ bgcolor: "white", color: "#64748b", border: "1px solid #cbd5e1" }}
                     />
                     <ButtonBase
-                      label={generando ? "Generando..." : "Generar Solicitud de Abastecimiento"}
+                      label={generando ? "Creando solicitud..." : "Generar Solicitud de Abastecimiento"}
                       startIcon={generando ? <CircularProgress size={18} color="inherit" /> : <AddCircleOutline />}
                       onClick={handleGenerarSolicitud}
                       disabled={generando}
@@ -816,7 +934,6 @@ export default function CatalogoPedido() {
                         px: 4, py: 1.5, fontWeight: 700, fontSize: "0.85rem", borderRadius: 2.5,
                         background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)",
                         boxShadow: "0 8px 20px rgba(124,58,237,0.3)",
-                        "&:hover": { transform: "translateY(-1px)", boxShadow: "0 12px 28px rgba(124,58,237,0.4)" },
                       }}
                     />
                   </Stack>
@@ -828,15 +945,16 @@ export default function CatalogoPedido() {
         </Box>
       </Fade>
 
-      {/* ══ MODAL CONFIRMACIÓN ══ */}
-      <Dialog open={confirmOpen} onClose={() => !submitting && setConfirmOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, overflow: "hidden" } }}>
+      {/* ══ MODAL CONFIRMACIÓN — muestra lo que devolvió el backend ══ */}
+      <Dialog open={confirmOpen} onClose={() => !submitting && setConfirmOpen(false)} maxWidth="sm" fullWidth
+        PaperProps={{ sx: { borderRadius: 3, overflow: "hidden" } }}>
         <DialogTitle sx={{ m: 0, p: 0 }}>
           <Box sx={{ background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)", p: 3, color: "white", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <Stack direction="row" spacing={1.5} alignItems="center">
               <Box sx={{ bgcolor: "rgba(255,255,255,0.2)", p: 0.8, borderRadius: 1.5, display: "flex" }}><SendOutlined fontSize="small" /></Box>
               <Box>
-                <Typography variant="h6" fontWeight={800}>Confirmar Solicitud de Catálogo</Typography>
-                <Typography variant="caption" sx={{ opacity: 0.85 }}>Revisa los detalles antes de aprobar</Typography>
+                <Typography variant="h6" fontWeight={800}>Confirmar y Aprobar Solicitud</Typography>
+                <Typography variant="caption" sx={{ opacity: 0.85 }}>La solicitud ya fue creada en DRAFT — confírmala para aprobar</Typography>
               </Box>
             </Stack>
             {!submitting && (
@@ -853,7 +971,7 @@ export default function CatalogoPedido() {
                 <AssignmentOutlined color="action" fontSize="small" />
                 <Box>
                   <Typography variant="caption" display="block" color="text.secondary" sx={{ textTransform: "uppercase", fontWeight: 700 }}>Número de Solicitud</Typography>
-                  <Typography variant="body1" fontWeight={800} color="primary.main">{requestDto?.requestNumber}</Typography>
+                  <Typography variant="body1" fontWeight={800} color="primary.main">{createdRequest?.requestNumber}</Typography>
                 </Box>
               </Stack>
               <Stack direction="row" spacing={2} alignItems="center">
@@ -861,7 +979,8 @@ export default function CatalogoPedido() {
                 <Box>
                   <Typography variant="caption" display="block" color="text.secondary" sx={{ textTransform: "uppercase", fontWeight: 700 }}>Resumen</Typography>
                   <Typography variant="body2" fontWeight={600}>
-                    {requestDto?.items?.length} productos — {selectedItems.reduce((s, i) => s + i.requestedQuantity, 0)} unidades
+                    {createdRequest?.items?.length ?? selectedItems.length} productos —{" "}
+                    {selectedItems.reduce((s, i) => s + i.requestedQuantity, 0)} unidades
                     {hayPrecio && ` — S/ ${totalEstimado.toFixed(2)} estimado`}
                   </Typography>
                 </Box>
@@ -878,11 +997,11 @@ export default function CatalogoPedido() {
 
           {/* Desglose por tipo */}
           <Box sx={{ display: "flex", gap: 1.5, mb: 3, flexWrap: "wrap" }}>
-            {(["EPP", "MATERIAL", "EQUIPMENT", "TOOL"] as ProductType[])
+            {ALL_TYPES
               .filter(tipo => selectedItems.some(i => i.productType === tipo))
               .map(tipo => {
-                const cfg = PRODUCT_TYPE_CONFIG[tipo];
-                const count = selectedItems.filter(i => i.productType === tipo).length;
+                const cfg      = PRODUCT_TYPE_CONFIG[tipo];
+                const count    = selectedItems.filter(i => i.productType === tipo).length;
                 const urgentes = selectedItems.filter(i => i.productType === tipo && i.isUrgent).length;
                 return (
                   <Paper key={tipo} variant="outlined" sx={{ flex: "1 1 90px", p: 1.5, borderRadius: 2, textAlign: "center", border: `1px solid ${cfg.border}`, bgcolor: cfg.bg }}>
@@ -897,7 +1016,7 @@ export default function CatalogoPedido() {
 
           {selectedItems.filter(i => i.isUrgent).length > 0 && (
             <Alert severity="error" icon={<ReportProblemOutlined />} sx={{ borderRadius: 2, mb: 2 }}>
-              <Typography variant="body2" fontWeight={700} mb={0.5}>Productos marcados como urgentes:</Typography>
+              <Typography variant="body2" fontWeight={700} mb={0.5}>Productos urgentes:</Typography>
               {selectedItems.filter(i => i.isUrgent).map(item => (
                 <Typography key={item.productId} variant="caption" display="block" color="text.secondary">
                   • {item.code} — {item.name} (cant: {item.requestedQuantity})
@@ -907,15 +1026,15 @@ export default function CatalogoPedido() {
           )}
 
           <Alert severity="warning" icon={<WarningAmberOutlined />} sx={{ borderRadius: 2, fontWeight: 500 }}>
-            Al confirmar, la solicitud pasará a estado <strong>APPROVED</strong> y estará disponible para seguimiento.
+            Al confirmar, la solicitud <strong>{createdRequest?.requestNumber}</strong> pasará a estado <strong>APPROVED</strong>.
           </Alert>
         </DialogContent>
         <DialogActions sx={{ p: 3, bgcolor: "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
-          <ButtonBase label="Regresar" onClick={() => setConfirmOpen(false)} disabled={submitting}
+          <ButtonBase label="Cancelar" onClick={() => setConfirmOpen(false)} disabled={submitting}
             sx={{ bgcolor: "white", color: "#64748b", border: "1px solid #cbd5e1" }}
           />
           <ButtonBase
-            label={submitting ? "Aprobando..." : "Confirmar y Enviar"}
+            label={submitting ? "Aprobando..." : "Confirmar y Aprobar"}
             startIcon={submitting ? <CircularProgress size={18} color="inherit" /> : <CheckCircleOutline />}
             onClick={handleAprobar}
             disabled={submitting}

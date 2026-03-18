@@ -10,8 +10,8 @@ export const CatalogService = {
     getAllCatalogs: async (): Promise<CatalogDTO> => {
 
         try {
-            const response = await apiClient.get("/api/catalogs/companies-projects");
-            console.log("✅ Datos recibidos:", response);
+            const response = await apiClient.get("/api/catalogs/companies-projects-hubs");
+            console.log("Datos recibidos:", response);
             return response.data;
         } catch (error) {
             console.error("Error fetching catalogs:", error);

@@ -14,7 +14,13 @@ export interface ProjectDTO {
   status: string;
 }
 
-export interface CatalogDTO {
+export interface DataCatalogoDTO {
   companies: CompanyDTO[];
   projects: ProjectDTO[];
+}
+
+export interface CatalogDTO {
+  success: boolean;
+  data: DataCatalogoDTO;
+  message: string;
 }

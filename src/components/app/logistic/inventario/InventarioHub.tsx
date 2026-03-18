@@ -30,7 +30,7 @@ type Modo = "consulta" | "reestoqueo";
 
 interface HubInventoryItem {
   id: number; tenantId: number; hubId: number; itemId: number;
-  itemCode: string; itemName: string;
+  itemCode: string; itemName: string; description: string;
   productType: "MATERIAL" | "TOOL" | "EQUIPMENT" | "EPP";
   supplySource: string; quantityAvailable: number; quantityReserved: number;
   quantityInTransit: number; averageCost: number | null; totalValue: number | null;
@@ -39,8 +39,10 @@ interface HubInventoryItem {
   uom?: string;
 }
 
+// ── FIX #1: SelectedItemForRequest ahora incluye description ──────────────────
 interface SelectedItemForRequest {
-  inventoryId: number; itemId: number; itemCode: string; itemName: string;
+  inventoryId: number; itemId: number; itemCode: string;
+  itemName: string; description: string;   // ← campo añadido
   productType: string; quantityAvailable: number; minimumStock: number;
   requestedQuantity: number; isUrgent: boolean; semaforo: SemaforoColor;
 }
@@ -74,24 +76,6 @@ const productoConfig: Record<string, { label: string; color: string; icon: strin
   EPP:       { label: "EPP",         color: "#7c3aed", icon: "🦺", bgLight: "#faf5ff" },
 };
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const MOCK_INVENTORY: HubInventoryItem[] = [
-  { id: 1,  tenantId: 1, hubId: 1, itemId: 101, itemCode: "MAT-001", itemName: "Cable Coaxial RG-6 (metro)",   productType: "MATERIAL",  supplySource: "CLARO", quantityAvailable: 3,   quantityReserved: 0, quantityInTransit: 0,  averageCost: 2.5,  totalValue: 7.5,  minimumStock: 50, reorderPoint: 100, maximumStock: 500,  avgAgingDays: 5,    locationCode: "EST-A1",  lastMovementDate: "2025-03-01" },
-  { id: 2,  tenantId: 1, hubId: 1, itemId: 102, itemCode: "MAT-002", itemName: "Conector F Compresión",        productType: "MATERIAL",  supplySource: "LPS",   quantityAvailable: 12,  quantityReserved: 5, quantityInTransit: 0,  averageCost: 0.8,  totalValue: 9.6,  minimumStock: 20, reorderPoint: 40,  maximumStock: 200,  avgAgingDays: 3,    locationCode: "EST-A2",  lastMovementDate: "2025-03-05" },
-  { id: 3,  tenantId: 1, hubId: 1, itemId: 103, itemCode: "MAT-003", itemName: "Canaleta 20x12mm (tira)",      productType: "MATERIAL",  supplySource: "LPS",   quantityAvailable: 45,  quantityReserved: 0, quantityInTransit: 20, averageCost: 3.2,  totalValue: 144,  minimumStock: 30, reorderPoint: 60,  maximumStock: 300,  avgAgingDays: 10,   locationCode: "EST-B1",  lastMovementDate: "2025-02-28" },
-  { id: 4,  tenantId: 1, hubId: 1, itemId: 104, itemCode: "MAT-004", itemName: "Splitter 2 Vías",              productType: "MATERIAL",  supplySource: "CLARO", quantityAvailable: 0,   quantityReserved: 0, quantityInTransit: 0,  averageCost: 4.5,  totalValue: 0,    minimumStock: 10, reorderPoint: 25,  maximumStock: 100,  avgAgingDays: null, locationCode: "EST-A3",  lastMovementDate: "2025-02-10" },
-  { id: 5,  tenantId: 1, hubId: 1, itemId: 105, itemCode: "MAT-005", itemName: "Amarras Plásticas 30cm",       productType: "MATERIAL",  supplySource: "LPS",   quantityAvailable: 200, quantityReserved: 0, quantityInTransit: 0,  averageCost: 0.05, totalValue: 10,   minimumStock: 50, reorderPoint: 100, maximumStock: 1000, avgAgingDays: 30,   locationCode: "EST-B2",  lastMovementDate: "2025-03-08" },
-  { id: 6,  tenantId: 1, hubId: 1, itemId: 201, itemCode: "EQP-001", itemName: "Modem HFC ARRIS TG3452",       productType: "EQUIPMENT", supplySource: "CLARO", quantityAvailable: 2,   quantityReserved: 2, quantityInTransit: 5,  averageCost: 85,   totalValue: 170,  minimumStock: 5,  reorderPoint: 10,  maximumStock: 50,   avgAgingDays: 2,    locationCode: "ZONA-EQ", lastMovementDate: "2025-03-09" },
-  { id: 7,  tenantId: 1, hubId: 1, itemId: 202, itemCode: "EQP-002", itemName: "Decodificador Amino A140",     productType: "EQUIPMENT", supplySource: "CLARO", quantityAvailable: 8,   quantityReserved: 3, quantityInTransit: 0,  averageCost: 65,   totalValue: 520,  minimumStock: 5,  reorderPoint: 12,  maximumStock: 60,   avgAgingDays: 7,    locationCode: "ZONA-EQ", lastMovementDate: "2025-03-07" },
-  { id: 8,  tenantId: 1, hubId: 1, itemId: 203, itemCode: "EQP-003", itemName: "Router WiFi Dual Band",        productType: "EQUIPMENT", supplySource: "CLARO", quantityAvailable: 0,   quantityReserved: 0, quantityInTransit: 10, averageCost: 120,  totalValue: 0,    minimumStock: 3,  reorderPoint: 8,   maximumStock: 40,   avgAgingDays: null, locationCode: "ZONA-EQ", lastMovementDate: "2025-02-20" },
-  { id: 9,  tenantId: 1, hubId: 1, itemId: 301, itemCode: "HRR-001", itemName: "Taladro Percutor 700W",        productType: "TOOL",      supplySource: "LPS",   quantityAvailable: 6,   quantityReserved: 0, quantityInTransit: 0,  averageCost: 180,  totalValue: 1080, minimumStock: 2,  reorderPoint: 4,   maximumStock: 15,   avgAgingDays: 90,   locationCode: "EST-C1",  lastMovementDate: "2025-03-01" },
-  { id: 10, tenantId: 1, hubId: 1, itemId: 302, itemCode: "HRR-002", itemName: "Escalera Telescópica 6m",      productType: "TOOL",      supplySource: "LPS",   quantityAvailable: 1,   quantityReserved: 1, quantityInTransit: 0,  averageCost: 250,  totalValue: 250,  minimumStock: 2,  reorderPoint: 4,   maximumStock: 10,   avgAgingDays: 45,   locationCode: "EST-C2",  lastMovementDate: "2025-03-06" },
-  { id: 11, tenantId: 1, hubId: 1, itemId: 303, itemCode: "HRR-003", itemName: "Pinza Amperimétrica Digital",  productType: "TOOL",      supplySource: "LPS",   quantityAvailable: 4,   quantityReserved: 0, quantityInTransit: 0,  averageCost: 95,   totalValue: 380,  minimumStock: 2,  reorderPoint: 3,   maximumStock: 10,   avgAgingDays: 60,   locationCode: "EST-C1",  lastMovementDate: "2025-02-25" },
-  { id: 12, tenantId: 1, hubId: 1, itemId: 401, itemCode: "EPP-001", itemName: "Casco de Seguridad clase E",   productType: "EPP",       supplySource: "LPS",   quantityAvailable: 5,   quantityReserved: 0, quantityInTransit: 0,  averageCost: 25,   totalValue: 125,  minimumStock: 10, reorderPoint: 15,  maximumStock: 50,   avgAgingDays: 20,   locationCode: "EST-D1",  lastMovementDate: "2025-03-03" },
-  { id: 13, tenantId: 1, hubId: 1, itemId: 402, itemCode: "EPP-002", itemName: "Arnés de Seguridad Full Body", productType: "EPP",       supplySource: "LPS",   quantityAvailable: 2,   quantityReserved: 0, quantityInTransit: 0,  averageCost: 150,  totalValue: 300,  minimumStock: 4,  reorderPoint: 6,   maximumStock: 20,   avgAgingDays: 15,   locationCode: "EST-D2",  lastMovementDate: "2025-03-04" },
-];
-
 // ─── Componente ───────────────────────────────────────────────────────────────
 
 export default function InventarioHub() {
@@ -103,10 +87,7 @@ export default function InventarioHub() {
   const [loading, setLoading] = useState(false);
   const [inventario, setInventario] = useState<HubInventoryItem[]>([]);
   const [itemsFiltrados, setItemsFiltrados] = useState<HubInventoryItem[]>([]);
-  console.log(inventario,"testing-inventario")
-  // ── Selección: Set de IDs numéricos ──────────────────────────────────────
-  // Usamos Set<number> en lugar de GridRowSelectionModel.
-  // El DataGrid nunca toca este estado — lo manejamos nosotros vía callbacks.
+
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [selectedItems, setSelectedItems] = useState<SelectedItemForRequest[]>([]);
 
@@ -124,7 +105,7 @@ export default function InventarioHub() {
     if (filterType !== "ALL") r = r.filter(i => i.productType === filterType);
     if (search.trim()) {
       const q = search.toLowerCase();
-      r = r.filter(i => `${i.itemCode} ${i.itemName}`.toLowerCase().includes(q));
+      r = r.filter(i => `${i.itemCode} ${i.itemName} ${i.description ?? ""}`.toLowerCase().includes(q));
     }
     setItemsFiltrados(r);
   }, [inventario, filterType, search]);
@@ -136,14 +117,15 @@ export default function InventarioHub() {
     }
   }, [showSuccess]);
 
-  const cargarInventario = async () => {
+const cargarInventario = async () => {
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 700));
-      const res = await fetch(`${API_URL}/api/hub-inventory?&page=0&size=100`)
-      const formmat = await res.json();
-      debugger
-      setInventario(formmat.content);
+      const res = await fetch(
+        `${API_URL}/api/hub-inventory?page=0&size=100&tenantId=1&hubId=1`
+      );
+      const format = await res.json();
+
+      setInventario(format.data.content ?? []);
     } catch {
       toast.error("Error al cargar inventario");
     } finally {
@@ -151,12 +133,18 @@ export default function InventarioHub() {
     }
   };
 
+  // ── FIX #1: buildSelectedItem ahora mapea description ─────────────────────
   const buildSelectedItem = (i: HubInventoryItem): SelectedItemForRequest => {
     const sem = getSemaforo(i);
     const deficit = Math.max(i.minimumStock - i.quantityAvailable, 0);
     return {
-      inventoryId: i.id, itemId: i.itemId, itemCode: i.itemCode, itemName: i.itemName,
-      productType: i.productType, quantityAvailable: i.quantityAvailable,
+      inventoryId: i.id,
+      itemId: i.itemId,
+      itemCode: i.itemCode,
+      itemName: i.itemName,
+      description: i.description ?? i.itemName,   // ← descripción real del API
+      productType: i.productType,
+      quantityAvailable: i.quantityAvailable,
       minimumStock: i.minimumStock,
       requestedQuantity: deficit > 0 ? deficit : i.minimumStock,
       isUrgent: sem === "ROJO" || sem === "GRIS",
@@ -215,34 +203,59 @@ export default function InventarioHub() {
     });
   }, [inventario]);
 
-  const updateRequestedQty = (inventoryId: number, qty: number) => {
+  // ── FIX #2: TextField cantidad — permite borrar completamente ─────────────
+  // Guardamos el valor como string mientras el usuario edita.
+  // Solo convertimos a number al confirmar/guardar.
+  const updateRequestedQty = (inventoryId: number, rawValue: string) => {
+    // Permitir string vacío mientras el usuario borra
+    const parsed = parseInt(rawValue, 10);
+    const qty = isNaN(parsed) ? 0 : Math.max(0, parsed);
     setSelectedItems(prev =>
-      prev.map(i => i.inventoryId === inventoryId ? { ...i, requestedQuantity: Math.max(1, qty) } : i)
+      prev.map(i =>
+        i.inventoryId === inventoryId
+          ? { ...i, requestedQuantity: qty, _rawQty: rawValue } as any
+          : i
+      )
     );
   };
 
+  // ── FIX #3: POST real al endpoint de supply-request ──────────────────────
   const handleGenerarSolicitud = async () => {
     if (selectedItems.length === 0) { toast.warning("Selecciona al menos un producto"); return; }
+
+    // Validar que todos tengan cantidad >= 1
+    const sinCantidad = selectedItems.filter(i => i.requestedQuantity < 1);
+    if (sinCantidad.length > 0) {
+      toast.warning(`${sinCantidad.length} producto(s) tienen cantidad 0. Ingresa al menos 1.`);
+      return;
+    }
+
     setGeneratingRequest(true);
     try {
-      await new Promise(r => setTimeout(r, 1000));
+      // Preview local para el modal de confirmación (sin llamar al API aún)
       const mock: SupplyRequestDto = {
-        id: Math.floor(Math.random() * 9000) + 1000,
+        id: 0,
         requestNumber: `SAB-${dayjs().format("YYYYMM")}-${String(Math.floor(Math.random() * 999) + 1).padStart(3, "0")}`,
         status: "DRAFT",
         items: selectedItems.map((item, idx) => ({
-          id: idx + 1, itemCode: item.itemCode, itemName: item.itemName,
-          productType: item.productType, requestedQuantity: item.requestedQuantity,
-          isUrgent: item.isUrgent, unitPrice: 0, totalPrice: 0, uom: "UND",
+          id: idx + 1,
+          itemId: item.itemId,
+          itemCode: item.itemCode,
+          itemName: item.itemName,
+          itemDescription: item.description,
+          productType: item.productType,
+          requestedQuantity: item.requestedQuantity,
+          deliveredQuantity: 0,
+          pendingQuantity: 0,
         })),
         totalItemsCount: selectedItems.length,
         totalEstimatedValue: 0,
-        requestedDeliveryDate: dayjs().add(7, "day").toISOString(),
+        requestedDeliveryDate: dayjs().add(7, "day").format("YYYY-MM-DD"),
       };
       setRequestDto(mock);
       setConfirmDialogOpen(true);
     } catch {
-      toast.error("Error al generar solicitud");
+      toast.error("Error al preparar solicitud");
     } finally {
       setGeneratingRequest(false);
     }
@@ -253,15 +266,54 @@ export default function InventarioHub() {
     setConfirmDialogOpen(false);
     setSubmitting(true);
     try {
-      await new Promise(r => setTimeout(r, 1500));
-      setSubmittedInfo({ ...requestDto, status: "APPROVED" });
+      // ── POST real al backend ────────────────────────────────────────────
+      const body = {
+        tenantId: 1,
+        hubId: 1,
+        projectId: 1,
+        requestedBy: 1,
+        requestedDeliveryDate: requestDto.requestedDeliveryDate,
+        periodValueEntrega: requestDto.requestedDeliveryDate,
+        origin: "INVENTORY",
+        items: selectedItems.map(item => ({
+          itemId: item.itemId,
+          itemCode: item.itemCode,
+          itemName: item.description,
+          itemDescription: item.description,
+          productType: item.productType,
+          requestedQuantity: item.requestedQuantity,
+          deliveredQuantity: 0,
+          pendingQuantity: 0,
+        })),
+      };
+
+      const res = await fetch(`${API_URL}/api/hub-inventory/supply-request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message ?? `Error ${res.status}`);
+      }
+
+      const createdRequest = await res.json();
+
+      setSubmittedInfo({
+        ...requestDto,
+        id: createdRequest.id ?? requestDto.id,
+        requestNumber: createdRequest.requestNumber ?? requestDto.requestNumber,
+        status: createdRequest.status ?? "APPROVED",
+      });
       setShowSuccess(true);
       setModo("consulta");
       setSelectedIds(new Set());
       setSelectedItems([]);
       setRequestDto(null);
-    } catch {
-      toast.error("Error al aprobar solicitud");
+      toast.success("Solicitud registrada correctamente");
+    } catch (err: any) {
+      toast.error(`Error al registrar solicitud: ${err.message ?? "Intenta de nuevo"}`);
     } finally {
       setSubmitting(false);
     }
@@ -301,10 +353,11 @@ export default function InventarioHub() {
       },
     },
     {
+      // ── Grid principal usa "description" que viene del API ─────────────
       field: "description", headerName: "Descripción", flex: 2, minWidth: 200,
       renderCell: (p) => (
-        <Box sx={{display:"flex",flexDirection:"column", height:"100%", justifyContent:"center"}}>
-          <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1.3 }}>{p.value}</Typography>
+        <Box sx={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
+          <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1.3 }}>{p.value || p.row.itemName}</Typography>
           {p.row.locationCode && <Typography variant="caption" color="text.disabled" sx={{ fontSize: "0.68rem" }}>📍 {p.row.locationCode}</Typography>}
         </Box>
       ),
@@ -343,26 +396,72 @@ export default function InventarioHub() {
   ];
 
   // ── Columnas carrito ──────────────────────────────────────────────────────
+  // FIX #1: Carrito ahora usa "description" del SelectedItemForRequest
   const columnsSelected: GridColDef[] = [
-    { field: "semaforo",  headerName: "", width: 44, renderCell: (p) => { const cfg = semaforoConfig[p.value as SemaforoColor]; return <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: cfg?.color }} />; } },
-    { field: "itemCode",  headerName: "Código", width: 115, renderCell: (p) => { const cfg = productoConfig[p.row.productType] ?? productoConfig.MATERIAL; return <Chip label={p.value} size="small" sx={{ bgcolor: cfg.color, color: "white", fontWeight: 700, fontSize: "0.7rem" }} />; } },
-    { field: "itemName",  headerName: "Descripción", flex: 2, minWidth: 180 },
+    {
+      field: "semaforo", headerName: "", width: 44,
+      renderCell: (p) => {
+        const cfg = semaforoConfig[p.value as SemaforoColor];
+        return <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: cfg?.color }} />;
+      },
+    },
+    {
+      field: "itemCode", headerName: "Código", width: 115,
+      renderCell: (p) => {
+        const cfg = productoConfig[p.row.productType] ?? productoConfig.MATERIAL;
+        return <Chip label={p.value} size="small" sx={{ bgcolor: cfg.color, color: "white", fontWeight: 700, fontSize: "0.7rem" }} />;
+      },
+    },
+    {
+      // ── FIX #1: usar "description" (campo real mapeado en buildSelectedItem)
+      field: "description", headerName: "Descripción", flex: 2, minWidth: 180,
+      renderCell: (p) => (
+        <Typography variant="body2" fontWeight={600} sx={{ lineHeight: 1.3 }}>
+          {p.value || p.row.itemName}
+        </Typography>
+      ),
+    },
     { field: "quantityAvailable", headerName: "Actual",  width: 75, align: "center", headerAlign: "center", renderCell: (p) => <Typography variant="body2" fontWeight={700} color="error.main">{p.value}</Typography> },
     { field: "minimumStock",      headerName: "Mínimo",  width: 80, align: "center", headerAlign: "center", renderCell: (p) => <Typography variant="body2" color="text.secondary">{p.value}</Typography> },
     {
-      field: "requestedQuantity", headerName: "Solicitar", width: 120, align: "center", headerAlign: "center",
-      renderCell: (p) => (
-        <TextField type="number" size="small" value={p.value}
-          onChange={e => updateRequestedQty(p.row.inventoryId, parseInt(e.target.value) || 1)}
-          inputProps={{ min: 1, style: { textAlign: "center", fontWeight: 700, padding: "6px 8px" } }}
-          sx={{ width: 80, "& .MuiOutlinedInput-root": { borderRadius: 1.5, fontSize: "0.85rem" } }}
-        />
-      ),
+      field: "requestedQuantity", headerName: "Solicitar", width: 130, align: "center", headerAlign: "center",
+      renderCell: (p) => {
+        // ── FIX #2: manejo controlado que permite borrar completamente ───
+        const rawValue = (p.row as any)._rawQty ?? String(p.value === 0 ? "" : p.value);
+        return (
+        <Box sx={{display:"flex"}}>
+            <TextField
+            type="number"
+            size="small"
+            value={rawValue}
+            onChange={e => updateRequestedQty(p.row.inventoryId, e.target.value)}
+            onBlur={e => {
+              // Al salir del campo: si quedó vacío o 0, forzar mínimo 1
+              const val = parseInt(e.target.value, 10);
+              if (isNaN(val) || val < 1) {
+                updateRequestedQty(p.row.inventoryId, "1");
+              }
+            }}
+            inputProps={{
+              min: 1,
+              style: { textAlign: "center", fontWeight: 700, padding: "6px 8px" },
+            }}
+            sx={{
+              width: 90,
+              "& .MuiOutlinedInput-root": { borderRadius: 1.5, fontSize: "0.85rem" },
+              // Ocultar flechas nativas del input[type=number]
+              "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": { display: "none" },
+              "& input[type=number]": { MozAppearance: "textfield" },
+            }}
+          />
+        </Box>
+        );
+      },
     },
     {
       field: "isUrgent", headerName: "Urgente", width: 85, align: "center", headerAlign: "center",
       renderCell: (p) => p.value
-        ? <Chip label="SÍ" size="small" color="error"    sx={{ fontWeight: 700, height: 20, fontSize: "0.68rem" }} />
+        ? <Chip label="SÍ" size="small" color="error"     sx={{ fontWeight: 700, height: 20, fontSize: "0.68rem" }} />
         : <Chip label="NO" size="small" variant="outlined" sx={{ fontWeight: 600, height: 20, fontSize: "0.68rem" }} />,
     },
   ];
@@ -384,12 +483,12 @@ export default function InventarioHub() {
             </Box>
             <Typography variant="h4" fontWeight={800} sx={{ color: "#15803d", mb: 1 }}>¡Solicitud Registrada con Éxito!</Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 480, mx: "auto" }}>
-              La solicitud <strong>{submittedInfo?.requestNumber}</strong> fue aprobada y está en el flujo de abastecimiento.
+              La solicitud <strong>{submittedInfo?.requestNumber}</strong> fue registrada y está en el flujo de abastecimiento.
             </Typography>
             <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap", mb: 4 }}>
               {[
-                { label: "Nro. Solicitud",       value: submittedInfo?.requestNumber ?? "—", color: "#15803d" },
-                { label: "Productos solicitados", value: `${submittedInfo?.items?.length ?? 0}`, color: "#0369a1" },
+                { label: "Nro. Solicitud",        value: submittedInfo?.requestNumber ?? "—", color: "#15803d" },
+                { label: "Productos solicitados",  value: `${submittedInfo?.items?.length ?? 0}`, color: "#0369a1" },
               ].map(card => (
                 <Paper key={card.label} elevation={0} sx={{ px: 3, py: 2.5, borderRadius: 3, border: "1px solid #bbf7d0", bgcolor: "white", minWidth: 150, textAlign: "center" }}>
                   <Typography variant="h5" fontWeight={800} sx={{ color: card.color }}>{card.value}</Typography>
@@ -500,7 +599,7 @@ export default function InventarioHub() {
                 <TextField fullWidth size="small" placeholder="Buscar por código o descripción..." value={search} onChange={e => setSearch(e.target.value)} InputProps={{ startAdornment: <SearchOutlined sx={{ mr: 1, color: "text.disabled", fontSize: 18 }} /> }} sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }} />
               </Box>
               <Stack direction="row" spacing={1} flexWrap="wrap">
-                <Chip label={`🔴 ${metricas.ROJO} Críticos`} size="small" clickable sx={{ fontWeight: 700, fontSize: "0.72rem", bgcolor: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }} />
+                <Chip label={`🔴 ${metricas.ROJO} Críticos`}    size="small" clickable sx={{ fontWeight: 700, fontSize: "0.72rem", bgcolor: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }} />
                 <Chip label={`🟡 ${metricas.AMARILLO} En alerta`} size="small" clickable sx={{ fontWeight: 700, fontSize: "0.72rem", bgcolor: "#fffbeb", color: "#d97706", border: "1px solid #fde68a" }} />
                 {modo === "reestoqueo" && selectedIds.size > 0 && (
                   <Chip label="Limpiar selección" size="small" clickable icon={<Close sx={{ fontSize: "12px !important" }} />} onClick={() => { setSelectedIds(new Set()); setSelectedItems([]); }} sx={{ fontWeight: 600, fontSize: "0.72rem", bgcolor: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }} />
@@ -544,7 +643,6 @@ export default function InventarioHub() {
                 onSearch={() => {}}
                 pageSize={15}
                 showToolbar={false}
-                // ── Selección manual — el DataGrid no sabe nada de esto ──────
                 selectionEnabled={modo === "reestoqueo"}
                 selectedIds={selectedIds}
                 onSelectionChange={handleCheckOne}
@@ -582,7 +680,7 @@ export default function InventarioHub() {
                     {selectedItems.filter(i => i.isUrgent).length > 0 && (
                       <Chip label={`${selectedItems.filter(i => i.isUrgent).length} urgente${selectedItems.filter(i => i.isUrgent).length > 1 ? "s" : ""}`} size="small" icon={<WarningAmberOutlined sx={{ fontSize: "14px !important", color: "white !important" }} />} sx={{ bgcolor: "#ef4444", color: "white", fontWeight: 700 }} />
                     )}
-                    <Chip label={`${selectedItems.reduce((s, i) => s + i.requestedQuantity, 0)} unidades totales`} size="small" sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "white", fontWeight: 700 }} />
+                    <Chip label={`${selectedItems.reduce((s, i) => s + (i.requestedQuantity || 0), 0)} unidades totales`} size="small" sx={{ bgcolor: "rgba(255,255,255,0.2)", color: "white", fontWeight: 700 }} />
                   </Stack>
                 </Box>
               </Box>
@@ -599,7 +697,17 @@ export default function InventarioHub() {
                     );
                   })}
                 </Box>
-                <CustomDataGrid columns={columnsSelected} localRows={selectedItems.map(i => ({ ...i, id: i.inventoryId }))} serverSide={false} search="" onSearch={() => {}} pageSize={20} showToolbar={false} sx={{ border: "1px solid #bfdbfe", "& .MuiDataGrid-columnHeaders": { bgcolor: "#eff6ff" } }} />
+                {/* FIX #1: Pasar id correcto para que DataGrid no se confunda */}
+                <CustomDataGrid
+                  columns={columnsSelected}
+                  localRows={selectedItems.map(i => ({ ...i, id: i.inventoryId }))}
+                  serverSide={false}
+                  search=""
+                  onSearch={() => {}}
+                  pageSize={20}
+                  showToolbar={false}
+                  sx={{ border: "1px solid #bfdbfe", "& .MuiDataGrid-columnHeaders": { bgcolor: "#eff6ff" } }}
+                />
                 <Divider sx={{ my: 3 }} />
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
                   <Stack direction="row" spacing={1} alignItems="center">
@@ -608,7 +716,13 @@ export default function InventarioHub() {
                   </Stack>
                   <Stack direction="row" spacing={2}>
                     <ButtonBase label="Cancelar" variant="outlined" startIcon={<CancelOutlined />} onClick={cancelarReestoqueo} sx={{ bgcolor: "white", color: "#64748b", border: "1px solid #cbd5e1" }} />
-                    <ButtonBase label={generatingRequest ? "Generando..." : "Registrar Solicitud de Abastecimiento"} startIcon={generatingRequest ? <CircularProgress size={18} color="inherit" /> : <AddCircleOutline />} onClick={handleGenerarSolicitud} disabled={generatingRequest} sx={{ px: 4, py: 1.5, fontWeight: 700, fontSize: "0.85rem", borderRadius: 2.5, background: "linear-gradient(135deg, #16a34a 0%, #15803d 100%)", boxShadow: "0 8px 20px rgba(22,163,74,0.3)", "&:hover": { transform: "translateY(-1px)", boxShadow: "0 12px 28px rgba(22,163,74,0.4)" } }} />
+                    <ButtonBase
+                      label={generatingRequest ? "Generando..." : "Registrar Solicitud de Abastecimiento"}
+                      startIcon={generatingRequest ? <CircularProgress size={18} color="inherit" /> : <AddCircleOutline />}
+                      onClick={handleGenerarSolicitud}
+                      disabled={generatingRequest}
+                      sx={{ px: 4, py: 1.5, fontWeight: 700, fontSize: "0.85rem", borderRadius: 2.5, background: "linear-gradient(135deg, #16a34a 0%, #15803d 100%)", boxShadow: "0 8px 20px rgba(22,163,74,0.3)", "&:hover": { transform: "translateY(-1px)", boxShadow: "0 12px 28px rgba(22,163,74,0.4)" } }}
+                    />
                   </Stack>
                 </Box>
               </Box>
@@ -626,7 +740,7 @@ export default function InventarioHub() {
               <Box sx={{ bgcolor: "rgba(255,255,255,0.2)", p: 0.8, borderRadius: 1.5, display: "flex" }}><SendOutlined fontSize="small" /></Box>
               <Box>
                 <Typography variant="h6" fontWeight={800}>Confirmar Solicitud</Typography>
-                <Typography variant="caption" sx={{ opacity: 0.85 }}>Revisa los detalles antes de aprobar</Typography>
+                <Typography variant="caption" sx={{ opacity: 0.85 }}>Revisa los detalles antes de enviar al backend</Typography>
               </Box>
             </Stack>
             {!submitting && <IconButton onClick={() => setConfirmDialogOpen(false)} size="small" sx={{ color: "rgba(255,255,255,0.7)" }}><Close fontSize="small" /></IconButton>}
@@ -638,7 +752,7 @@ export default function InventarioHub() {
               <Stack direction="row" spacing={2} alignItems="center">
                 <AssignmentOutlined color="action" fontSize="small" />
                 <Box>
-                  <Typography variant="caption" display="block" color="text.secondary" sx={{ textTransform: "uppercase", fontWeight: 700 }}>Número de Solicitud</Typography>
+                  <Typography variant="caption" display="block" color="text.secondary" sx={{ textTransform: "uppercase", fontWeight: 700 }}>Número de Solicitud (preview)</Typography>
                   <Typography variant="body1" fontWeight={800} color="primary.main">{requestDto?.requestNumber}</Typography>
                 </Box>
               </Stack>
@@ -646,7 +760,7 @@ export default function InventarioHub() {
                 <TableChartOutlined color="action" fontSize="small" />
                 <Box>
                   <Typography variant="caption" display="block" color="text.secondary" sx={{ textTransform: "uppercase", fontWeight: 700 }}>Total</Typography>
-                  <Typography variant="body2" fontWeight={600}>{requestDto?.items?.length} productos — {selectedItems.reduce((s, i) => s + i.requestedQuantity, 0)} unidades</Typography>
+                  <Typography variant="body2" fontWeight={600}>{requestDto?.items?.length} productos — {selectedItems.reduce((s, i) => s + (i.requestedQuantity || 0), 0)} unidades</Typography>
                 </Box>
               </Stack>
               <Stack direction="row" spacing={2} alignItems="center">
@@ -676,17 +790,25 @@ export default function InventarioHub() {
             <Alert severity="error" icon={<ReportProblemOutlined />} sx={{ borderRadius: 2, mb: 2 }}>
               <Typography variant="body2" fontWeight={700} mb={0.5}>Productos críticos incluidos:</Typography>
               {selectedItems.filter(i => i.isUrgent).map(item => (
-                <Typography key={item.inventoryId} variant="caption" display="block" color="text.secondary">• {item.itemCode} — {item.itemName} (actual: {item.quantityAvailable} / solicitar: {item.requestedQuantity})</Typography>
+                <Typography key={item.inventoryId} variant="caption" display="block" color="text.secondary">
+                  • {item.itemCode} — {item.description || item.itemName} (actual: {item.quantityAvailable} / solicitar: {item.requestedQuantity})
+                </Typography>
               ))}
             </Alert>
           )}
           <Alert severity="warning" icon={<WarningAmberOutlined />} sx={{ borderRadius: 2, fontWeight: 500 }}>
-            Al confirmar, la solicitud pasará a estado <strong>APPROVED</strong> y estará disponible para recepción.
+            Al confirmar, se enviará el POST a <strong>/api/hub-inventory/supply-request</strong> y la solicitud quedará registrada.
           </Alert>
         </DialogContent>
         <DialogActions sx={{ p: 3, bgcolor: "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
           <ButtonBase label="Regresar" onClick={() => setConfirmDialogOpen(false)} disabled={submitting} sx={{ bgcolor: "white", color: "#64748b", border: "1px solid #cbd5e1" }} />
-          <ButtonBase label={submitting ? "Aprobando..." : "Confirmar y Aprobar"} startIcon={submitting ? <CircularProgress size={18} color="inherit" /> : <CheckCircleOutline />} onClick={handleAprobarSolicitud} disabled={submitting} sx={{ px: 4, background: "linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)", boxShadow: "0 4px 14px rgba(37,99,235,0.3)" }} />
+          <ButtonBase
+            label={submitting ? "Enviando al servidor..." : "Confirmar y Registrar"}
+            startIcon={submitting ? <CircularProgress size={18} color="inherit" /> : <CheckCircleOutline />}
+            onClick={handleAprobarSolicitud}
+            disabled={submitting}
+            sx={{ px: 4, background: "linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)", boxShadow: "0 4px 14px rgba(37,99,235,0.3)" }}
+          />
         </DialogActions>
       </Dialog>
     </Box>
