@@ -105,7 +105,6 @@ export default function EnterpriseLogin() {
 
       dispatch(setRoutes(drawerRoutes));
       const res = await CatalogService.getAllCatalogs();
-      debugger
       dispatch(setCompanies(res.data.companies));
 
       toast.success(`Bienvenido, ${userData.full_name}`);

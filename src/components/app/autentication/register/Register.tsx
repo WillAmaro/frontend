@@ -694,7 +694,6 @@ export default function CompleteProfilePage() {
       try {
         const tenantsData = await authService.getTenants();
         setLoadingTenants(false);
-        debugger;
         setTenants(tenantsData);
       } catch (error: any) {
         toast.error("Error al cargar empresas: " + error.message);
@@ -1091,7 +1090,6 @@ export default function CompleteProfilePage() {
                         value={profileData.tenant_id.toString()}
                         label=""
                         onChange={(e: any) => {
-                          debugger;
                           setProfileData({
                             ...profileData,
                             tenant_id: e,

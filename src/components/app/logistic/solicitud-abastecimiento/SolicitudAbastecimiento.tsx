@@ -133,7 +133,6 @@ export default function SolicitudAbastecimiento() {
     const loadCatalogs = async () => {
       try {
         const data = await CatalogService.getAllCatalogs();
-        debugger
         setCatalogos({ companies: data.data.companies, projects: data.data.projects });
       } catch (error) {
         console.error(error);

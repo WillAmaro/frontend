@@ -413,7 +413,7 @@ export default function CatalogoPedido() {
     {
       field: "name", headerName: "Nombre / Descripción", flex: 2, minWidth: 220,
       renderCell: (p) => (
-        <Box>
+        <Box sx={{display:"flex",flexDirection:"column"}}>
           <Typography variant="body2" fontWeight={700} sx={{ lineHeight: 1.3 }}>{p.value}</Typography>
           {p.row.description && (
             <Typography variant="caption" color="text.disabled" sx={{ fontSize: "0.68rem" }}>{p.row.description}</Typography>
