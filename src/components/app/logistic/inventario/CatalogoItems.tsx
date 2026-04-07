@@ -400,7 +400,7 @@ export default function CatalogoPedido() {
   // ─── COLUMNAS DataGrid catálogo ────────────────────────────────────────
   const columns: GridColDef[] = [
     {
-      field: "code", headerName: "Código", width: 160,
+      field: "code", headerName: "Código", width: 100,
       renderCell: (p) => {
         const cfg = PRODUCT_TYPE_CONFIG[p.row.productType as ProductType];
         return (

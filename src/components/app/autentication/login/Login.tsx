@@ -30,12 +30,22 @@ import {
 } from "@mui/icons-material";
 import { CatalogService } from "@/src/services/api/CatalogService";
 import { setCompanies } from "@/src/store/slices/CompanySlices";
+import {
+  CognitoUserPool,
+  CognitoUser,
+  AuthenticationDetails,
+} from "amazon-cognito-identity-js";
+import { generateCodeChallenge, generateRandomString } from "@/src/utils/pkce";
 
 export default function EnterpriseLogin() {
   const dispatch = useDispatch<AppDispatch>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isReady, setIsReady] = useState(false); // Para disparar el Fade
   const router = useRouter();
+  const userPool = new CognitoUserPool({
+  UserPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID!,
+  ClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
+});
 
   const [userLogin, setUserLogin] = useState({
     email: "",
@@ -51,71 +61,217 @@ export default function EnterpriseLogin() {
     setUserLogin((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: userLogin.email,
-        password: userLogin.password,
-      });
 
-      if (authError) throw new Error(authError.message);
-      const sessionData = await authService.checkUserSession(authData.user.id);
+//   const handleLogin = async (e: React.FormEvent) => {
+//   e.preventDefault(); // 🔥 ESTO ES CLAVE
 
-      if (!sessionData.exists || sessionData.needs_profile_completion) {
-        localStorage.setItem("temp_user_id", authData.user.id);
-        router.push("/completar-registro");
-        return;
-      }
+//   const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!;
+//   const redirectUri = process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!;
+//   const domain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN!;
 
-      const userData = sessionData.user!;
-      const drawerRoutes: DrawerRoute[] = userData.role.permissions?.map((perm, index) => ({
-        id: index + 1,
-        label: perm.route_name,
-        path: perm.route,
-        icon: perm.route_icon || "folder",
-      })) || [];
+//   const codeVerifier = generateRandomString(64);
+//   const codeChallenge = await generateCodeChallenge(codeVerifier);
 
-      dispatch(
-        setUser({
-          id: parseInt(userData.user_id),
-          user_id: userData.user_id,
-          name: userData.full_name,
-          email: userData.email,
-          email_verified_at: authData.user.email_confirmed_at || null,
-          created_at: authData.user.created_at || new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          tenant_id: userData.tenant_id,
-          role_id: userData.role.role_id,
-          defaultPath: drawerRoutes[0]?.path || "/dashboard",
-          role: {
-            id: parseInt(userData.role.role_id),
-            tenant_id: parseInt(userData.tenant_id),
-            name: userData.role.role_name,
-            description: userData.role.role_description || "",
-            created_at: new Date().toISOString(),
-            updated_at: null,
-          },
-          person: null,
-          token: authData.session.access_token,
-          refreshToken: authData.session.refresh_token,
-        })
-      );
+//   localStorage.setItem("pkce_code_verifier", codeVerifier);
 
-      dispatch(setRoutes(drawerRoutes));
-      const res = await CatalogService.getAllCatalogs();
-      dispatch(setCompanies(res.data.companies));
+//   const url = `${domain}/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(
+//   redirectUri
+// )}&scope=openid email phone&code_challenge=${codeChallenge}&code_challenge_method=S256`;
 
-      toast.success(`Bienvenido, ${userData.full_name}`);
-      router.push(drawerRoutes[0]?.path || "/dashboard");
-    } catch (error: any) {
-      toast.error(error.message || "Error de autenticación");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+//   console.log("REDIRECTING TO:", url); // 👈 DEBUG
 
+//   window.location.href = url;
+// };
+
+const handleLogin = (e: React.FormEvent) => {
+  e.preventDefault();
+
+  //   const url = `${domain}/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(
+//   redirectUri
+// )}&scope=openid email phone&code_challenge=${codeChallenge}&code_challenge_method=S256`;
+
+
+const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!;
+const redirectUri = process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!;
+const domain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN!;
+
+const url =
+  `${domain}/login?` +
+  `client_id=${clientId}` +
+  `&response_type=code` +
+  `&scope=email+openid+phone` +
+  `&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+  console.log("REDIRECTING TO:", url);
+
+  window.location.assign(url);
+};
+  // const handleLogin = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   try {
+  //     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+  //       email: userLogin.email,
+  //       password: userLogin.password,
+  //     });
+
+  //     if (authError) throw new Error(authError.message);
+  //     const sessionData = await authService.checkUserSession(authData.user.id);
+
+  //     if (!sessionData.exists || sessionData.needs_profile_completion) {
+  //       localStorage.setItem("temp_user_id", authData.user.id);
+  //       router.push("/completar-registro");
+  //       return;
+  //     }
+
+  //     const userData = sessionData.user!;
+  //     const drawerRoutes: DrawerRoute[] = userData.role.permissions?.map((perm, index) => ({
+  //       id: index + 1,
+  //       label: perm.route_name,
+  //       path: perm.route,
+  //       icon: perm.route_icon || "folder",
+  //     })) || [];
+
+  //     dispatch(
+  //       setUser({
+  //         id: parseInt(userData.user_id),
+  //         user_id: userData.user_id,
+  //         name: userData.full_name,
+  //         email: userData.email,
+  //         email_verified_at: authData.user.email_confirmed_at || null,
+  //         created_at: authData.user.created_at || new Date().toISOString(),
+  //         updated_at: new Date().toISOString(),
+  //         tenant_id: userData.tenant_id,
+  //         role_id: userData.role.role_id,
+  //         defaultPath: drawerRoutes[0]?.path || "/dashboard",
+  //         role: {
+  //           id: parseInt(userData.role.role_id),
+  //           tenant_id: parseInt(userData.tenant_id),
+  //           name: userData.role.role_name,
+  //           description: userData.role.role_description || "",
+  //           created_at: new Date().toISOString(),
+  //           updated_at: null,
+  //         },
+  //         person: null,
+  //         token: authData.session.access_token,
+  //         refreshToken: authData.session.refresh_token,
+  //       })
+  //     );
+
+  //     dispatch(setRoutes(drawerRoutes));
+  //     const res = await CatalogService.getAllCatalogs();
+  //     dispatch(setCompanies(res.data.companies));
+
+  //     toast.success(`Bienvenido, ${userData.full_name}`);
+  //     router.push(drawerRoutes[0]?.path || "/dashboard");
+  //   } catch (error: any) {
+  //     toast.error(error.message || "Error de autenticación");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+//   const handleLogin = async (e: React.FormEvent) => {
+//   e.preventDefault();
+//   setIsLoading(true);
+
+//   try {
+//     const cognitoUser = new CognitoUser({
+//       Username: userLogin.email,
+//       Pool: userPool,
+//     });
+
+//     const authDetails = new AuthenticationDetails({
+//       Username: userLogin.email,
+//       Password: userLogin.password,
+//     });
+
+//     cognitoUser.authenticateUser(authDetails, {
+//       onSuccess: async (result) => {
+//         try {
+//           const accessToken = result.getAccessToken().getJwtToken();
+//           const refreshToken = result.getRefreshToken().getToken();
+//           const idToken = result.getIdToken().getJwtToken();
+
+//           // 👉 Aquí puedes obtener el sub (user id de Cognito)
+//           const payload = result.getIdToken().decodePayload();
+//           const cognitoUserId = payload.sub;
+
+//           // 🔥 TU lógica actual (la mantenemos)
+//           const sessionData = await authService.checkUserSession(cognitoUserId);
+
+//           if (!sessionData.exists || sessionData.needs_profile_completion) {
+//             localStorage.setItem("temp_user_id", cognitoUserId);
+//             router.push("/completar-registro");
+//             return;
+//           }
+
+//           const userData = sessionData.user!;
+
+//           const drawerRoutes: DrawerRoute[] =
+//             userData.role.permissions?.map((perm, index) => ({
+//               id: index + 1,
+//               label: perm.route_name,
+//               path: perm.route,
+//               icon: perm.route_icon || "folder",
+//             })) || [];
+
+//           dispatch(
+//             setUser({
+//               id: parseInt(userData.user_id),
+//               user_id: userData.user_id,
+//               name: userData.full_name,
+//               email: userData.email,
+//               email_verified_at: payload.email_verified ? new Date().toISOString() : null,
+//               created_at: new Date().toISOString(),
+//               updated_at: new Date().toISOString(),
+//               tenant_id: userData.tenant_id,
+//               role_id: userData.role.role_id,
+//               defaultPath: drawerRoutes[0]?.path || "/dashboard",
+//               role: {
+//                 id: parseInt(userData.role.role_id),
+//                 tenant_id: parseInt(userData.tenant_id),
+//                 name: userData.role.role_name,
+//                 description: userData.role.role_description || "",
+//                 created_at: new Date().toISOString(),
+//                 updated_at: null,
+//               },
+//               person: null,
+//               token: accessToken,
+//               refreshToken: refreshToken,
+//             })
+//           );
+
+//           dispatch(setRoutes(drawerRoutes));
+
+//           const res = await CatalogService.getAllCatalogs();
+//           dispatch(setCompanies(res.data.companies));
+
+//           toast.success(`Bienvenido, ${userData.full_name}`);
+//           router.push(drawerRoutes[0]?.path || "/dashboard");
+//         } catch (err: any) {
+//           toast.error(err.message || "Error procesando sesión");
+//         } finally {
+//           setIsLoading(false);
+//         }
+//       },
+
+//       onFailure: (err) => {
+//         setIsLoading(false);
+//         toast.error(err.message || "Error de autenticación");
+//       },
+
+//       newPasswordRequired: () => {
+//         setIsLoading(false);
+//         toast.info("Debes cambiar tu contraseña");
+//         router.push("/new-password");
+//       },
+//     });
+//   } catch (error: any) {
+//     setIsLoading(false);
+//     toast.error(error.message || "Error inesperado");
+//   }
+// };
   return (
     <Box
       sx={{
@@ -188,7 +344,7 @@ export default function EnterpriseLogin() {
 
           {/* Form */}
           <Box component="form" onSubmit={handleLogin} sx={{ p: 4, pt: 3 }}>
-            <Box sx={{ mb: 2 }}>
+            {/* <Box sx={{ mb: 2 }}>
               <Typography variant="caption" sx={{ fontWeight: 600, color: "#94a3b8", textTransform: 'uppercase', letterSpacing: '1px', mb: 1, display: 'block' }}>
                 Acceso corporativo
               </Typography>
@@ -239,7 +395,7 @@ export default function EnterpriseLogin() {
                   }
                 }}
               />
-            </Box>
+            </Box> */}
 
             <Button
               type="submit"

@@ -1139,8 +1139,11 @@ export default function InventarioHub() {
   const fetchData = useCallback(
     async (p: number, _size: number, _search: string) => {
       const params = new URLSearchParams({
+        
         tenantId: String(TENANT_ID),
         hubId:    String(HUB_ID),
+        subHubId : String(1),
+        projectId: String(1),
         page:     String(p),
         size:     String(PAGE_SIZE),
         ...(filterType !== "ALL"   ? { productType: filterType }         : {}),
@@ -1648,7 +1651,7 @@ export default function InventarioHub() {
 
   // ─── RENDER ───────────────────────────────────────────────────────────
   return (
-    <Box ref={topRef} sx={{ maxWidth: 1400, mx: "auto", p: 4, display: "flex", flexDirection: "column", gap: 3 }}>
+    <Box ref={topRef} sx={{ maxWidth: 1400, mx: "auto", p: 4, display: "flex", flexDirection: "column" }}>
 
       <TitleCard
         icon={<StorageOutlined sx={{ fontSize: 32 }} />}
@@ -1749,10 +1752,10 @@ export default function InventarioHub() {
 
       {/* ══ CONTENIDO PRINCIPAL ══════════════════════════════════════════════ */}
       <Fade in={!showSuccess} timeout={400} unmountOnExit>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 4}}>
 
           {/* KPI Cards */}
-          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+          {/* <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
             {(["ROJO", "AMARILLO", "VERDE", "GRIS"] as SemaforoColor[]).map((sem) => {
               const cfg   = semaforoConfig[sem];
               const count = metricas[sem];
@@ -1792,7 +1795,7 @@ export default function InventarioHub() {
                 </Paper>
               );
             })}
-          </Box>
+          </Box> */}
 
           {/* Banner reestoqueo activo */}
           <Collapse in={modo === "reestoqueo"}>
@@ -1840,7 +1843,7 @@ export default function InventarioHub() {
           </Collapse>
 
           {/* Panel filtros */}
-          <Card elevation={3} sx={{ borderRadius: 4, boxShadow: "rgba(149,157,165,0.2) 0px 8px 24px", overflow: "hidden" }}>
+          <Card elevation={3} sx={{ borderRadius: 4, boxShadow: "rgba(149,157,165,0.2) 0px 8px 24px", overflow: "hidden",border:"1px solid rgba(0, 0, 0, 0.12)" }}>
             <Box sx={{
               px: 3, py: 2.5, borderBottom: "1px solid", borderColor: "divider",
               display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -1982,8 +1985,8 @@ export default function InventarioHub() {
           </Card>
 
           {/* DataGrid principal */}
-          <Card elevation={3} sx={{ borderRadius: 4, boxShadow: "rgba(149,157,165,0.2) 0px 8px 24px", p: 3 }}>
-            <Box sx={{
+          {/* <Card elevation={3} sx={{ borderRadius: 4, boxShadow: "rgba(149,157,165,0.2) 0px 8px 24px", p: 3 ,border:"1px solid rgba(0, 0, 0, 0.12)"}}> */}
+            {/* <Box sx={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
               mb: 2.5, flexWrap: "wrap", gap: 2,
             }}>
@@ -2010,7 +2013,7 @@ export default function InventarioHub() {
                   </Typography>
                 </Alert>
               )}
-            </Box>
+            </Box> */}
 
             <CustomDataGrid
               columns={columns}
@@ -2039,7 +2042,7 @@ export default function InventarioHub() {
                 ...(modo === "consulta" && { "& .MuiDataGrid-row": { cursor: "default" } }),
               }}
             />
-          </Card>
+          {/* </Card> */}
 
           {/* Carrito */}
           <Collapse in={modo === "reestoqueo" && selectedItems.length > 0} unmountOnExit>

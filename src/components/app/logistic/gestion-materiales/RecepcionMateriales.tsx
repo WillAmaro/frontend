@@ -168,6 +168,7 @@ interface EquipmentUnitInputDto {
   supplySourceEntityId: number | null;
   entryDate: string;
   createdBy: number;
+  createdAt:string;
 }
 
 // ─── Estado del stepper ────────────────────────────────────────────────────
@@ -285,8 +286,10 @@ const buildDeliveryPayload = (
   const itemsEntregados = items.filter((item) => {
     if (item.productType === "EQUIPMENT")
       return (item.serials?.length ?? 0) > 0;
-    return (item.receivedQuantity ?? 0) > 0;
+    return (item.deliveredQuantity ?? 0) > 0;
   });
+
+  debugger
 
   return {
     id: supplyRequestId,
@@ -303,7 +306,7 @@ const buildDeliveryPayload = (
       deliveredQuantity:
         item.productType === "EQUIPMENT"
           ? (item.serials?.length ?? 0)
-          : (item.receivedQuantity ?? 0),
+          : (item.deliveredQuantity ?? 0),
       itemCode: item.itemCode,
       itemDescription: item.itemDescription,
       productType: item.productType,
@@ -373,7 +376,7 @@ const buildKardexPayload = (
       });
     } else {
       // MATERIAL / TOOL — solo si se ingresó cantidad
-      const qty = item.receivedQuantity ?? 0;
+      const qty = item.deliveredQuantity ?? 0;
       if (qty <= 0) return;
 
       movements.push({
@@ -424,7 +427,7 @@ const buildInventoryBatchPayload = (
     .filter((item) => {
       if (item.productType === "EQUIPMENT")
         return (item.serials?.length ?? 0) > 0;
-      return (item.receivedQuantity ?? 0) > 0;
+      return (item.deliveredQuantity ?? 0) > 0;
     })
     .map((item) => ({
       inventoryId: item.inventoryId,
@@ -435,7 +438,7 @@ const buildInventoryBatchPayload = (
       quantityDelivered:
         item.productType === "EQUIPMENT"
           ? (item.serials?.length ?? 0)
-          : (item.receivedQuantity ?? 0),
+          : (item.deliveredQuantity ?? 0),
       unitPrice: item.unitPrice ?? 0,
     }));
 
@@ -458,7 +461,7 @@ const buildInventoryBatchPayload = (
           supplySourceEntityId: 1,
           entryDate: receptionDate,
           createdBy,
-        });
+createdAt: dayjs().format("YYYY-MM-DDTHH:mm:ss"),        });
       });
     });
 
@@ -542,6 +545,7 @@ export default function RecepcionMateriales() {
   const [itemsRecepcion, setItemsRecepcion] = useState<SupplyRequestItem[]>([]);
   const [archivoGuia, setArchivoGuia] = useState<File | null>(null);
   const [codigoGuia, setCodigoGuia] = useState("");
+  console.log(itemsRecepcion,"testing-reception")
 
   // ─── Modal escaneo ────────────────────────────────────────────────────
   const [modalEquipoOpen, setModalEquipoOpen] = useState(false);
@@ -646,11 +650,12 @@ export default function RecepcionMateriales() {
       const items: SupplyRequestItem[] = (detalle.items ?? []).map(
         (item: any) => ({
           ...item,
-          receivedQuantity: item.pendingQuantity ?? item.requestedQuantity,
+          deliveredQuantity: item.deliveredQuantity ?? 0,
           serials: [],
         }),
       );
       setItemsRecepcion(items);
+      debugger
       setVista("detail");
       setTabActual(0);
       topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -679,7 +684,7 @@ export default function RecepcionMateriales() {
     setItemsRecepcion((prev) =>
       prev.map((item) =>
         item.itemCode === newRow.itemCode
-          ? { ...item, receivedQuantity: newRow.receivedQuantity }
+          ? { ...item, deliveredQuantity: newRow.deliveredQuantity }
           : item,
       ),
     );
@@ -790,7 +795,7 @@ export default function RecepcionMateriales() {
     setItemsRecepcion((prev) =>
       prev.map((item) =>
         item.itemCode === equipoSeleccionado.itemCode
-          ? { ...item, serials: lista, receivedQuantity: lista.length }
+          ? { ...item, serials: lista, deliveredQuantity: lista.length }
           : item,
       ),
     );
@@ -972,7 +977,7 @@ export default function RecepcionMateriales() {
         const entregados = itemsRecepcion.filter((i) =>
           i.productType === "EQUIPMENT"
             ? (i.serials?.length ?? 0) > 0
-            : (i.receivedQuantity ?? 0) > 0,
+            : (i.deliveredQuantity ?? 0) > 0,
         ).length;
         setSuccessData({
           id: supplyRequestId,
@@ -1019,14 +1024,14 @@ export default function RecepcionMateriales() {
   const itemsConEntrega = itemsRecepcion.filter((i) =>
     i.productType === "EQUIPMENT"
       ? (i.serials?.length ?? 0) > 0
-      : (i.receivedQuantity ?? 0) > 0,
+      : (i.deliveredQuantity ?? 0) > 0,
   );
 
   // Conteo de kardex movements (para mostrar en el resumen previo)
   const totalKardexPreview =
     itemsRecepcion
       .filter((i) => i.productType !== "EQUIPMENT")
-      .reduce((s, i) => s + (i.receivedQuantity ?? 0), 0) +
+      .reduce((s, i) => s + (i.deliveredQuantity ?? 0), 0) +
     itemsRecepcion
       .filter((i) => i.productType === "EQUIPMENT")
       .reduce((s, i) => s + (i.serials?.length ?? 0), 0);
@@ -2575,7 +2580,7 @@ export default function RecepcionMateriales() {
                       itemsRecepcion.filter((i) =>
                         i.productType === "EQUIPMENT"
                           ? (i.serials?.length ?? 0) > 0
-                          : (i.receivedQuantity ?? 0) > 0,
+                          : (i.deliveredQuantity ?? 0) > 0,
                       ).length === 0
                     }
                     sx={{ px: 4, boxShadow: "0 4px 12px rgba(46,125,50,0.25)" }}

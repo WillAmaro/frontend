@@ -722,11 +722,13 @@ export default function CustomDataGrid({
     <div style={{ height: "auto", width: "100%", overflowX: "auto" }}>
       <DataGrid
         sx={{
+                        borderRadius:4,
+         
           "& .MuiDataGrid-cell": { alignContent: "center" },
           // Header oscuro para que el checkbox blanco se vea bien
           ...(selectionEnabled && {
             "& .MuiDataGrid-columnHeaders": {
-              bgcolor: "#1e293b",
+              bgcolor: "black",
               color: "white",
             },
           }),

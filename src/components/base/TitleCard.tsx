@@ -19,11 +19,13 @@ export const TitleCard: React.FC<TitleCardProps> = ({
 }) => {
     return (
         <Card
-            elevation={8}
+            elevation={0}
             sx={{
-                boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px;',
+
+                // boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px;',
                 borderRadius: 5,
                 borderColor: 'divider',
+                border:"1px solid rgba(0, 0, 0, 0.12)",
                 md: 3
             }}
         >

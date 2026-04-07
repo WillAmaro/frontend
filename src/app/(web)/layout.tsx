@@ -18,41 +18,41 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     //  Redirigir al login si no hay token 
-    if (!user.token) {
-      router.push("/login");
-      return; // salimos para que no cargue nada más
-    }
+    // if (!user.token) {
+    //   router.push("/login");
+    //   return; // salimos para que no cargue nada más
+    // }
 
 
-    const loadDrawerRoutes = async () => {
+    // const loadDrawerRoutes = async () => {
 
-      if(!user.token) return;
-      if (!user.role_id) return;
+    //   if(!user.token) return;
+    //   if (!user.role_id) return;
 
-      try {
-        const response = await authService.getUserMenuRoutes(
-          user.role_id
-        );
+    //   try {
+    //     const response = await authService.getUserMenuRoutes(
+    //       user.role_id
+    //     );
 
-        if (!response) return;
+    //     if (!response) return;
 
-        const mapDrawerRoutes = (modules: any[]): DrawerRoute[] =>
-          modules.map((perm, index) => ({
-        id: index + 1,
-        label: perm.route_name,
-        path: perm.route_path,
-        icon: perm.route_icon || "folder",
-      })) || [];
+    //     const mapDrawerRoutes = (modules: any[]): DrawerRoute[] =>
+    //       modules.map((perm, index) => ({
+    //     id: index + 1,
+    //     label: perm.route_name,
+    //     path: perm.route_path,
+    //     icon: perm.route_icon || "folder",
+    //   })) || [];
       
           
-        const drawerRoutes = mapDrawerRoutes(response);
-        dispatch(setRoutes(drawerRoutes));
-      } catch (err) {
-        console.error("Error cargando rutas del drawer:", err);
-      }
-    };
+    //     const drawerRoutes = mapDrawerRoutes(response);
+    //     dispatch(setRoutes(drawerRoutes));
+    //   } catch (err) {
+    //     console.error("Error cargando rutas del drawer:", err);
+    //   }
+    // };
 
-    loadDrawerRoutes();
+    // loadDrawerRoutes();
   }, [dispatch, router, user.token, user.role_id]);
 
   return (
